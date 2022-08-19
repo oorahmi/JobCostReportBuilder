@@ -325,8 +325,6 @@ def createJobWorkbook(total_job_wb_path):
     total_wb.save(processed_file_path)
 
 
-
-
 def main(argv):
     if len(argv) == 0 or len(argv) > 2:
         print("Error - usage: supply one job total workbook")
