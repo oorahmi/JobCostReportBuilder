@@ -272,7 +272,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
                 for s_item_name, s_amount in job_item.sub_items.items():
 
                     if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
-                        total_labor_cost += job_item.amount
+                        total_labor_cost += s_amount 
 
                     total_cost += s_amount
                     sub_total += s_amount
