@@ -8,7 +8,7 @@ or in the terminal
 
     git clone https://github.com/oorahmi/jobCostReportBuilder.git
     
-Requires openpyxl
+Requires openpyxl, in your terminal run:
 
     pip install openpyxl
 
