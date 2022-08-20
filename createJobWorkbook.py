@@ -263,6 +263,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
                 total_cost += job_item.amount
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = job_item.item_name 
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.amount
+                sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -job_item.amount
                 i += 1
             else:
@@ -278,11 +279,13 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
                     sub_total += s_amount
                     sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = s_item_name
                     sheet.cell(row = i, column = ACT_COST_COLUMN).value = s_amount
+                    sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
                     sheet.cell(row = i, column = DIFF_COLUMN).value = -s_amount
                     i += 1
                 # write out total for the subs
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total " + job_item.item_name
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_total
+                sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -sub_total
                 i += 1
 
@@ -303,15 +306,15 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         # total service
         sheet.cell(row = i, column = 2).value = "Total Service"
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_labor_cost
-        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0
-        sheet.cell(row = i, column = DIFF_COLUMN).value = 0
+        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
+        sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
         i += 1
 
         # total income
         sheet.cell(row = i, column = 2).value = "Total Income"
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0.0
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
-        sheet.cell(row = i, column = DIFF_COLUMN).value = 0
+        sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
         i += 1
 
         # total
