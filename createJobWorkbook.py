@@ -399,6 +399,10 @@ def main(argv):
 
     if os.path.isfile(job_wb_path) and os.path.isfile(revenue_wb_path ):
         createJobWorkbook(job_wb_path, revenue_wb_path)
+    elif not os.path.isfile(job_wb_path):
+        print("Error: job total workbook does not exist?")
+    elif not os.path.isfile(revenue_wb_path):
+        print("Error: revenue workbook does not exist?")
     else:
         print("Error: wrong input")
 
