@@ -43,11 +43,11 @@ Meaning add the total cost from each worksheets you added and show it below the 
 ----------------------------------------------------------------------------------------------------------------------
 
 
-Program to take in a .xslx for the total job workbook and fill out all Job Sheets.
+Program to take in a .xslx for the total job workbook and Revenue report workbook file and fill out all Job Cost Report Sheets.
 
 Usage:  
 
-    python createJobWorkbook.py path_to_total_job_workbook_file path_to_profitability_report
+    python createJobWorkbook.py path_to_job_workbook_file   path_to_revenue_report_workbook-file
 
 The processed total job workbook will be saved as a copy in /processed
 
@@ -66,6 +66,7 @@ import os
 import shutil
 from copy import copy
 from datetime import datetime
+from collections import OrderedDict
 
 # cant copy sheet from one workbook to another without a deep level copy
 # https://stackoverflow.com/questions/42344041/how-to-copy-worksheet-from-one-workbook-to-another-one-using-openpyxl
@@ -119,7 +120,7 @@ def copySheet(source_sheet, target_sheet):
         
 
 
-def createJobWorkbook(total_job_wb_path):
+def createJobWorkbook(total_job_wb_path, revenue_file_path):
     # copy wb and work on copy
     processed_file_path = os.path.split(total_job_wb_path)[0]  +'/processed/' + os.path.basename(total_job_wb_path).split('.')[0] + '_processed.xlsx'
     shutil.copyfile(total_job_wb_path, processed_file_path)
@@ -131,6 +132,13 @@ def createJobWorkbook(total_job_wb_path):
 
     total_sheet = total_wb.active
     total_sheet.title = "Total" # rename
+
+    revenue_wb = openpyxl.load_workbook(revenue_file_path) 
+    if not total_wb:
+        print("Error: failed to open workbook: ", revenue_file_path)
+        return
+    
+    revenue_sheet = revenue_wb.active
 
     job_str_set = set()
     NAME_COLUMN = 8      # find by name? column H
@@ -169,16 +177,26 @@ def createJobWorkbook(total_job_wb_path):
     ITEM_COLUMN = 10      
     AMOUNT_COLUMN = 15
 
+ 
     class JobItem:
-        def __init__(self, item_name="") -> None:
+        def __init__(self, item_name=""):
             self.item_name = item_name
-
             self.amount = 0  # used for tracking value for non sub-type
 
             self.hasSub = False
-            self.sub_items = [] # contains list of (name, amount) pairs
+            self.sub_items = OrderedDict() # contains list of (name, amount) pairs
+        
+        def processSubItem(self, sub_item_name, amount):
+            if not self.hasSub:
+                print("error: tried to process subitem on top level item")
+                return
 
-
+            if sub_item_name not in self.sub_items.keys():
+                self.sub_items[sub_item_name] = amount 
+            else:
+                self.sub_items[sub_item_name] += amount
+            
+    # SCOPED
     def createJobCostSheet(sheet):
         # create job sheet
         job_number = sheet.title
@@ -190,12 +208,14 @@ def createJobWorkbook(total_job_wb_path):
         job_name = None
         job_items = []
         # get all job progress entries 
-        for i in range(1, total_sheet.max_row + 1): 
+        for i in range(1, total_sheet.max_row + 1):    # could optimize by not doing all rows
             name_cell = total_sheet.cell(row = i, column = NAME_COLUMN) 
-            if not job_name:
-                job_name = name_cell.value
 
             if job_number in name_cell.value:
+
+                if not job_name:
+                    job_name = name_cell.value
+
                 item_cell = total_sheet.cell(row = i, column = ITEM_COLUMN) 
                 amount_cell = total_sheet.cell(row = i, column = AMOUNT_COLUMN) 
 
@@ -221,22 +241,16 @@ def createJobWorkbook(total_job_wb_path):
                     job_item = JobItem(item_name)
                     if sub_item_name:
                         job_item.hasSub = True
-                        sub_item = None
-                        for s_item in job_item.sub_items:
-                            if sub_item_name == s_item[0]:
-                                sub_item = s_item
-                                sub_item[1] += amount_cell.value
-                            
-                        # create a new sub item
-                        if sub_item is None:
-                            job_item.sub_items.append((sub_item_name, amount_cell.value))
+                        job_item.processSubItem(sub_item_name, amount_cell.value)
                     else:
                         job_item.amount += amount_cell.value
-                else:
-                    job_item
-
-
-        # append job name
+                else: # 
+                    if job_item.hasSub:
+                        job_item.processSubItem(sub_item_name, amount_cell.value)
+                    else:
+                        job_item.amount += amount_cell.value
+                        
+        # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
         ITEM_NAME_COLUMN    = 3
@@ -245,9 +259,15 @@ def createJobWorkbook(total_job_wb_path):
         ACT_REVENUE_COLUMN  = 7
         DIFF_COLUMN         = 9
         i = 7  # starting point after 'Service' row
+
+        total_labor_cost = 0
+        total_cost = 0
         # write job cost data
         for job_item in job_items:
             if not job_item.hasSub:
+                if "labor" in job_item.item_name.lower() and "temp" not in job_item.item_name.lower():
+                    total_labor_cost += job_item.amount
+                total_cost += job_item.amount
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = job_item.item_name 
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.amount
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -job_item.amount
@@ -255,10 +275,14 @@ def createJobWorkbook(total_job_wb_path):
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
                 sub_total = 0
-                for sub_item in job_item.sub_items:
-                    sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = job_item.sub_item[0]
-                    sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.sub_item[1]
-                    sheet.cell(row = i, column = DIFF_COLUMN).value = -job_item.sub_item[1]
+                for s_item_name, s_amount in job_item.sub_items.items():
+
+                    if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
+                        total_labor_cost += job_item.amount
+                    total_cost += s_amount
+                    sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = s_item_name
+                    sheet.cell(row = i, column = ACT_COST_COLUMN).value = s_amount
+                    sheet.cell(row = i, column = DIFF_COLUMN).value = -s_amount
                     sub_total += job_item[1]
                     i += 1
                 # write out total for the subs
@@ -267,9 +291,21 @@ def createJobWorkbook(total_job_wb_path):
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -sub_total
                 i += 1
 
-        # handle income?
+        # total service
+        sheet.cell(row = i, column = 2).value = "Total Service"
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost
+        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = "Total Service"
+        sheet.cell(row = i, column = DIFF_COLUMN).value = "Total Service"
+        i += 1
 
-        # calculate totals
+        # total income
+        sheet.cell(row = i, column = 2).value = "Total Income"
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = "Total Service"
+        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = "Total Service"
+        sheet.cell(row = i, column = DIFF_COLUMN).value = "Total Service"
+        i += 1
+
+        # total
         sheet.cell(row = i, column = 1).value = "Total"
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = "Total Service"
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = "Total Service"
@@ -285,20 +321,13 @@ def createJobWorkbook(total_job_wb_path):
         Other OH: Multiply 0.5% to all costs
         Total Cost w/OH: Total Costs + Labor OH + Other OH
         '''
-        total_labor = 0
 
-        total_cost_w_oh = 0
+        labor_oh = total_labor_cost * 0.3
+        other_oh = total_cost * 0.05
+        total_cost_w_oh = total_cost + labor_oh + other_oh
 
-        for job_item in job_items:
-            pass
-
-
-        labor_oh = total_labor * 0.3
-        other_oh = 0.05
-        total_cost_w_oh += labor_oh + other_oh
-
-        sheet.cell(row = i, column = SU_BITEM_NAME_COLUMN).value = "Total Service"
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value =  total_labor
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Service"
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value =  total_labor_cost
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Labor OH"
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = labor_oh
@@ -309,8 +338,32 @@ def createJobWorkbook(total_job_wb_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Cost w/ OH"
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost_w_oh
         i += 1
+
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost_w_oh
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0
+        i += 1
+
+        NUM_REVENUE_COLUMN = 11
+        MEMO_REVENUE_COLUMN = 13
+        ITEM_REVENUE_COLUMN = 15
+        AMOUNT_REVENUE_COLUMN = 17
+        # Grab all billed
+        for j in range(6, revenue_sheet.max_row + 1):    # could optimize by not doing all rows
+
+            num_cell = revenue_sheet.cell(row = j, column = NUM_REVENUE_COLUMN) 
+            if job_number in name_cell.value:
+                memo_cell = revenue_sheet.cell(row = j, column = MEMO_REVENUE_COLUMN) 
+                item_cell = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN) 
+                amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
+
+                sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
+                sheet.cell(row = i, column = ACT_COST_COLUMN).value = amount_cell.value
+                i+=1
+
+        # write total income for the last time
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = 
+
+
 
 
     # create and fill all job sheet data
@@ -327,22 +380,16 @@ def createJobWorkbook(total_job_wb_path):
 
 def main(argv):
     if len(argv) == 0 or len(argv) > 2:
-        print("Error - usage: supply one job total workbook")
+        print("Error - usage: supply one job total workbook and one revenue workbook")
         return
 
     job_wb_path = argv[0]
+    revenue_wb_path = argv[1]
 
-    #profitability_path = argv[1]
-
-    if os.path.isfile(job_wb_path):
-        createJobWorkbook(job_wb_path)
+    if os.path.isfile(job_wb_path) and os.path.isfile(revenue_wb_path ):
+        createJobWorkbook(job_wb_path, revenue_wb_path)
     else:
         print("Error: wrong input")
-
-    #elif os.path.isdir(path):
-        # process multiple workbooks
-    #    for file_name in os.listdir(path):
-    #        createJobWorkbook(os.path.join(path, file_name))
 
 if __name__ == "__main__":
    main(sys.argv[1:])
