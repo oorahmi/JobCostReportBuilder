@@ -161,6 +161,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sys.exit()
         return
 
+    DATE_COLUMN = 6
     ITEM_COLUMN = 10      
     AMOUNT_COLUMN = 16
  
@@ -191,6 +192,9 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sheet.cell(row = 1, column = 10).value = datetime.today().strftime("%H:%M %p")
         sheet.cell(row = 2, column = 10).value = datetime.today().strftime("%B %d, %Y")
 
+        min_date = datetime.max
+        max_date = datetime.min
+
         job_name = None
         job_items = []
         # get all job progress entries 
@@ -198,6 +202,13 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
             j_name = total_sheet.cell(row = i, column = NAME_COLUMN).value
 
             if j_name and job_number in j_name:
+
+                date = total_sheet.cell(row = i, column = DATE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Job without a date: ", j_name)
 
                 if not job_name:
                     job_name = j_name 
@@ -243,6 +254,9 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
                         
         # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
+
+        # write date range
+        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         ITEM_NAME_COLUMN    = 3
         SUBITEM_NAME_COLUMN = 4
@@ -290,15 +304,16 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
                 i += 1
 
         NUM_REVENUE_COLUMN = 11
-        MEMO_REVENUE_COLUMN = 13
-        ITEM_REVENUE_COLUMN = 15
-        AMOUNT_REVENUE_COLUMN = 17
+        NAME_REVENUE_COLUMN = 13
+        MEMO_REVENUE_COLUMN = 15
+        ITEM_REVENUE_COLUMN = 17
+        AMOUNT_REVENUE_COLUMN = 19
  
         # get total income
         total_revenue_income = 0
         for j in range(6, revenue_sheet.max_row + 1):    
-            j_num = revenue_sheet.cell(row = j, column = NUM_REVENUE_COLUMN).value
-            if j_num and job_number in j_num:
+            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
+            if j_name and job_number in j_name:
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
                 total_revenue_income += amount_cell.value
 
@@ -332,11 +347,11 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         Calculation details for the summary box:
         Total Labor: Add all labor costs except temp labor
         Labor OH: Multiply 30% to the total labor calculated above
-        Other OH: Multiply 0.5% to all costs
+        Other OH: Multiply 0.005 to all costs
         Total Cost w/OH: Total Costs + Labor OH + Other OH
         '''
         labor_oh = total_labor_cost * 0.3
-        other_oh = total_cost * 0.05
+        other_oh = total_cost * 0.005
         total_cost_w_oh = total_cost + labor_oh + other_oh
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Labor"
@@ -364,8 +379,8 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
        # Grab all billed
        # Could avoid doing this iteration twice
         for j in range(6, revenue_sheet.max_row + 1):    
-            j_num = revenue_sheet.cell(row = j, column = NUM_REVENUE_COLUMN).value
-            if j_num and job_number in j_num:
+            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
+            if j_name and job_number in j_name:
                 memo_cell = revenue_sheet.cell(row = j, column = MEMO_REVENUE_COLUMN) 
                 item_cell = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN) 
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
