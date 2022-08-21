@@ -412,8 +412,8 @@ def main(argv):
         print("Error - usage: supply one job total workbook and one revenue workbook")
         return
 
-    job_wb_path = argv[0]
-    revenue_wb_path = argv[1]
+    job_wb_path = os.path.abspath(argv[0])
+    revenue_wb_path = os.path.abspath(argv[1])
 
     if os.path.isfile(job_wb_path) and os.path.isfile(revenue_wb_path ):
         createJobWorkbook(job_wb_path, revenue_wb_path)
