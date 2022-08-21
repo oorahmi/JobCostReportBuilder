@@ -1,6 +1,7 @@
 # Job Cost Report Builder
 Program to take in a .xslx for the total job workbook and Revenue report workbook file and fill out all Job Cost Report Sheets.
-Currently requires the files to be in the JobCostReportBuilder directory
+
+### Currently requires the input .xslx files to be in the JobCostReportBuilder directory
 
 ### Installation
 To download navigate to the top and download under green 'code' button.
