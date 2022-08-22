@@ -50,6 +50,8 @@ Author: Brian Wright
 
 import sys
 import openpyxl
+from openpyxl.styles import Font
+from openpyxl.styles import Alignment
 import os 
 import shutil
 from copy import copy
@@ -320,6 +322,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
 
         # total service
         sheet.cell(row = i, column = 2).value = "Total Service"
+        sheet.cell(row = i, column = 2).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_labor_cost
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
         sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
@@ -327,6 +330,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
 
         # total income
         sheet.cell(row = i, column = 2).value = "Total Income"
+        sheet.cell(row = i, column = 2).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0.0
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
@@ -334,6 +338,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
 
         # total
         sheet.cell(row = i, column = 1).value = "Total"
+        sheet.cell(row = i, column = 1).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = DIFF_COLUMN).value = total_revenue_income - total_cost
@@ -355,18 +360,23 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         total_cost_w_oh = total_cost + labor_oh + other_oh
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Labor"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value =  total_labor_cost
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Labor OH"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = labor_oh
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other OH"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = other_oh
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Cost w/ OH"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost_w_oh
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
         i += 1
 
@@ -374,6 +384,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         i += 1
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
 
        # Grab all billed
@@ -391,6 +402,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
 
         # write total income for the last time
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
 
     # -------------------------------------------------------------------------------- #
