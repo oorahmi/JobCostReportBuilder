@@ -160,7 +160,8 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
     
     revenue_sheet = revenue_wb.active
 
-    job_str_set = set()
+    #job_str_set = set()
+    job_str_set = OrderedDict()
     NAME_COLUMN = 8      # find by name? column H
 
     # add new sheet for each unique job
@@ -172,9 +173,9 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         # is a job string? 
         if job_data and len(job_data.split(":")) > 1:
             job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
-            job_str_set.add(job_number)
+            job_str_set[job_number] = None
 
-    job_numbers = list(job_str_set)
+    job_numbers = list(job_str_set.keys())
     #job_numbers.sort()
     
     if len(job_numbers) == 0:
