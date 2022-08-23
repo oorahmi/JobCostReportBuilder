@@ -52,11 +52,41 @@ import sys
 import openpyxl
 from openpyxl.styles import Font
 from openpyxl.styles import Alignment
+from openpyxl.styles import Border, Side
 import os 
 import shutil
 from copy import copy
 from datetime import datetime
 from collections import OrderedDict
+
+def set_border(ws, cell_range):
+# https://stackoverflow.com/questions/34520764/apply-border-to-range-of-cells-using-openpyxl
+    rows = ws[cell_range]
+    side = Side(border_style='thick', color="FF000000")
+
+    rows = list(rows)  # we convert iterator to list for simplicity, but it's not memory efficient solution
+    max_y = len(rows) - 1  # index of the last row
+    for pos_y, cells in enumerate(rows):
+        max_x = len(cells) - 1  # index of the last cell
+        for pos_x, cell in enumerate(cells):
+            border = Border(
+                left=cell.border.left,
+                right=cell.border.right,
+                top=cell.border.top,
+                bottom=cell.border.bottom
+            )
+            if pos_x == 0:
+                border.left = side
+            if pos_x == max_x:
+                border.right = side
+            if pos_y == 0:
+                border.top = side
+            if pos_y == max_y:
+                border.bottom = side
+
+            # set new border only if it's one of the edge cells
+            if pos_x == 0 or pos_x == max_x or pos_y == 0 or pos_y == max_y:
+                cell.border = border
 
 # cant copy sheet from one workbook to another without a deep level copy
 # https://stackoverflow.com/questions/42344041/how-to-copy-worksheet-from-one-workbook-to-another-one-using-openpyxl
@@ -145,7 +175,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
             job_str_set.add(job_number)
 
     job_numbers = list(job_str_set)
-    job_numbers.sort()
+    #job_numbers.sort()
     
     if len(job_numbers) == 0:
         print("Error: failed to find jobs in workbook: ", processed_file_path)
@@ -189,10 +219,6 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
     def createJobCostSheet(sheet):
         # create job sheet
         job_number = sheet.title
-
-        # date and time
-        sheet.cell(row = 1, column = 10).value = datetime.today().strftime("%H:%M %p")
-        sheet.cell(row = 2, column = 10).value = datetime.today().strftime("%B %d, %Y")
 
         min_date = datetime.max
         max_date = datetime.min
@@ -265,6 +291,11 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         ACT_COST_COLUMN     = 5
         ACT_REVENUE_COLUMN  = 7
         DIFF_COLUMN         = 9
+
+        # date and time
+        sheet.cell(row = 1, column = DIFF_COLUMN).value = datetime.today().strftime("%H:%M %p")
+        sheet.cell(row = 2, column = DIFF_COLUMN).value = datetime.today().strftime("%B %d, %Y")
+
         i = 7  # starting point after 'Service' row
 
         total_labor_cost = 0
@@ -342,10 +373,14 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost
         sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = DIFF_COLUMN).value = total_revenue_income - total_cost
+        # total font bold
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
+
         i += 1
         # whitespace
         i += 1
-
     
         # summary box
         '''
@@ -379,6 +414,10 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
         i += 1
+
+        # column letter row number : column letter row number  for top left, bottom right
+        cell_range = "D" + str(i-5) + ":E" + str(i-2)
+        set_border(sheet, cell_range)
 
         # whitespace
         i += 1
@@ -414,7 +453,6 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         # copy initial format into empty sheet
         copySheet(jc_wb.active, sheet)
         createJobCostSheet(sheet)
-
 
     total_wb.save(processed_file_path)
 
