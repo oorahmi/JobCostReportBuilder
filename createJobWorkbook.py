@@ -416,7 +416,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         i += 1
 
         # column letter row number : column letter row number  for top left, bottom right
-        cell_range = "D" + str(i-5) + ":E" + str(i-2)
+        cell_range = "D" + str(i-5) + ":E" + str(i-1)
         set_border(sheet, cell_range)
 
         # whitespace
