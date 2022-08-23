@@ -398,22 +398,27 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Labor"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value =  total_labor_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Labor OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = labor_oh
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = other_oh
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Cost w/ OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost_w_oh
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
 
         # column letter row number : column letter row number  for top left, bottom right
