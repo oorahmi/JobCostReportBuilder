@@ -443,12 +443,19 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
 
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = amount_cell.value
-                i+=1
+                i += 1
 
         # write total income for the last time
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
+        i += 1
+
+        # clear out extra rows
+        sheet.delete_rows(i, sheet.max_row - i)
+
+        # trim printable area to data
+        sheet._print_area = "A1:I"+str(i)
 
     # -------------------------------------------------------------------------------- #
 
