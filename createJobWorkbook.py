@@ -449,6 +449,7 @@ def createJobWorkbook(total_job_wb_path, revenue_file_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
 
         # clear out extra rows
