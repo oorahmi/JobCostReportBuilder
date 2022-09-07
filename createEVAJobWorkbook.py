@@ -1,10 +1,9 @@
 '''
-
-Program to take in a .xslx for the cost detail workbook and revenue report workbook file and fill out all Job Cost Report Sheets.
+Program to take in a .xslx for the estimated cost detail, actual cost detail, and Revenue report workbook file and fill out all Job Cost Report Sheets.
 
 Usage:  
 
-    python createJobWorkbook.py path_to_job_workbook_file   path_to_revenue_report_workbook-file
+    python createJobWorkbook.py path_to_job_workbook_file  path_to_revenue_report_workbook-file path_to_actual_cost_report
 
 The processed total job workbook will be saved as a copy in /processed
 
@@ -16,7 +15,6 @@ Author: Brian Wright
 8-18-2022
 
 '''
-
 from util import set_border, copySheet
 
 import sys
@@ -29,23 +27,24 @@ import shutil
 from copy import copy
 from datetime import datetime
 from collections import OrderedDict
+       
 
-def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
+def createEVAJobWorkbook(eva_total_wb_path):
     # copy wb and work on copy
-    processed_file_path = os.path.split(cost_detail_wb_path)[0]  +'/processed/' + os.path.basename(cost_detail_wb_path).split('.')[0] + '_processed.xlsx'
-    shutil.copyfile(cost_detail_wb_path, processed_file_path)
+    processed_file_path = os.path.split(eva_total_wb_path)[0]  +'/processed/' + os.path.basename(eva_total_wb_path).split('.')[0] + '_processed.xlsx'
+    shutil.copyfile(eva_total_wb_path, processed_file_path)
 
-    cost_detail_wb = openpyxl.load_workbook(processed_file_path) 
+    eva_total_wb = openpyxl.load_workbook(processed_file_path) 
     if not cost_detail_wb:
         print("Error: failed to open workbook: ", processed_file_path)
         return
 
-    cost_detail_sheet = cost_detail_wb.active
-    cost_detail_sheet.title = "Total" # rename
+    estimated_cost_detail_sheet = cost_detail_wb.active
+    estimated_cost_detail_sheet = cost_detail_wb.active
 
-    revenue_wb = openpyxl.load_workbook(revenue_file_path) 
+    revenue_wb = openpyxl.load_workbook(revenue_wb_path) 
     if not cost_detail_wb:
-        print("Error: failed to open workbook: ", revenue_file_path)
+        print("Error: failed to open workbook: ", revenue_wb_path)
         return
     
     revenue_sheet = revenue_wb.active
@@ -66,6 +65,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
             job_str_set[job_number] = None
 
     job_numbers = list(job_str_set.keys())
+    #job_numbers.sort()
     
     if len(job_numbers) == 0:
         print("Error: failed to find jobs in workbook: ", processed_file_path)
@@ -361,20 +361,18 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
     cost_detail_wb.save(processed_file_path)
 
 
+
 def main(argv):
-    if len(argv) == 0 or len(argv) > 2:
-        print("Error - usage: supply cost detail workbook , revenue workbook")
+    if len(argv) == 0 or len(argv) > 1:
+        print("Error - usage: supply cost detail workbook , revenue workbook, and actual cost workbook")
         return
 
-    cost_detail_wb_path = os.path.abspath(argv[0])
-    revenue_wb_path     = os.path.abspath(argv[1])
+    eva_total_wb_path = os.path.abspath(argv[0])
 
-    if os.path.isfile(cost_detail_wb_path) and os.path.isfile(revenue_wb_path):
-        createJobWorkbook(cost_detail_wb_path, revenue_wb_path)
-    elif not os.path.isfile(cost_detail_wb_path):
-        print("Error: cost detail workbook does not exist?: ", cost_detail_wb_path)
-    elif not os.path.isfile(revenue_wb_path):
-        print("Error: revenue workbook does not exist?: ", revenue_wb_path)
+    if os.path.isfile(eva_total_wb_path):
+        createEVAJobWorkbook(eva_total_wb_path) 
+    elif not os.path.isfile(eva_total_wb_path):
+        print("Error: eva path does not exist?: ", eva_total_wb_path)
     else:
         print("Error: wrong input")
 
