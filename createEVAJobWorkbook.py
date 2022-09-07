@@ -41,17 +41,17 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
     actual_cost_detail_sheet    = eva_total_wb.worksheets[0]
     revenue_sheet               = eva_total_wb.worksheets[1]
-    estimated_cost_detail_sheet = eva_total_wb.worksheets[2]
+    estimate_cost_detail_sheet  = eva_total_wb.worksheets[2]
 
     #job_str_set = set()
     job_str_set = OrderedDict()
 
-    EVA_NAME_COLUMN = 11      
+    ACTUAL_NAME_COLUMN = 11      
 
     # add new sheet for each unique job
     # column
     for i in range(1, actual_cost_detail_sheet.max_row + 1): 
-        job_data = actual_cost_detail_sheet.cell(row = i, column = EVA_NAME_COLUMN).value
+        job_data = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_NAME_COLUMN).value
 
         # format is currrently:   job_name:job_number type
         # is a job string? 
@@ -77,27 +77,35 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sys.exit()
         return
 
-    DATE_COLUMN = 8
-    ITEM_COLUMN = 10      
-    AMOUNT_COLUMN = 16
+    ACTUAL_DATE_COLUMN = 9
+    ACTUAL_ITEM_COLUMN = 15      
+    ACTUAL_AMOUNT_COLUMN = 19
 
     class JobItem:
         def __init__(self, item_name=""):
             self.item_name = item_name
-            self.amount = 0  # used for tracking value for non sub-type
+            self.actual_amount    = 0  # used for tracking value for non sub-type
+            self.estimated_amount = 0  
 
             self.hasSub = False
-            self.sub_items = OrderedDict() # contains list of (name, amount) pairs
+            self.actual_sub_items   = OrderedDict() 
+            self.estimate_sub_items = OrderedDict() # contains list of (name, amount) pairs
         
-        def processSubItem(self, sub_item_name, amount):
+        def processSubItem(self, sub_item_name, amount, actual=False):
             if not self.hasSub:
                 print("error: tried to process subitem on top level item")
                 return
 
             if sub_item_name not in self.sub_items.keys():
-                self.sub_items[sub_item_name] = amount 
-            else:
-                self.sub_items[sub_item_name] += amount
+                if actual:
+                    self.actual_sub_items[sub_item_name] = amount 
+                else:
+                    self.estimate_sub_items[sub_item_name] = amount 
+            else: # already in?
+                if actual:
+                    self.actual_sub_items[sub_item_name] += amount
+                else:
+                    self.estimate_sub_items[sub_item_name] += amount
             
     # SCOPED
     def createEVAJobCostSheet(sheet):
@@ -109,13 +117,13 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
         job_name = None
         job_items = []
-        # get all job progress entries 
-        for i in range(1, cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
-            j_name = cost_detail_sheet.cell(row = i, column = NAME_COLUMN).value
+        # get all job actual costs 
+        for i in range(1, actual_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
+            j_name = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_NAME_COLUMN).value
 
             if j_name and job_number in j_name:
 
-                date = cost_detail_sheet.cell(row = i, column = DATE_COLUMN).value
+                date = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_DATE_COLUMN).value
                 if date:
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
@@ -125,8 +133,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 if not job_name:
                     job_name = j_name 
 
-                j_item = cost_detail_sheet.cell(row = i, column = ITEM_COLUMN).value
-                j_amount = cost_detail_sheet.cell(row = i, column = AMOUNT_COLUMN).value
+                j_item = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_ITEM_COLUMN).value
+                j_amount = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_AMOUNT_COLUMN).value
                 if not j_item:
                     print("Warn: have job entry with no item data", j_name)
                     continue
@@ -154,15 +162,67 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     job_item = JobItem(item_name)
                     if sub_item_name:
                         job_item.hasSub = True
-                        job_item.processSubItem(sub_item_name, j_amount)
+                        job_item.processSubItem(sub_item_name, j_amount, actual=True)
                     else:
-                        job_item.amount += j_amount
+                        job_item.actual_amount += j_amount
                     job_items.append(job_item)
                 else: # 
                     if job_item.hasSub:
-                        job_item.processSubItem(sub_item_name, j_amount)
+                        job_item.processSubItem(sub_item_name, j_amount, actual=True)
                     else:
-                        job_item.amount += j_amount
+                        job_item.actual_amount += j_amount
+
+        ESTIMATE_NAME_COLUMN   = 10
+        ESTIMATE_ITEM_COLUMN   = 12
+        ESTIMATE_AMOUNT_COLUMN = 16
+
+        # now get estimate amounts for all the job items, should not be any new jobs
+        for i in range(1, estimate_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
+            j_name = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_NAME_COLUMN).value
+
+            if j_name and job_number in j_name:
+
+                if not job_name:
+                    job_name = j_name 
+
+                j_item = actual_cost_detail_sheet.cell(row = i, column = ESTIMATE_ITEM_COLUMN).value
+                j_amount = actual_cost_detail_sheet.cell(row = i, column = ESTIMATE_AMOUNT_COLUMN).value
+                if not j_item:
+                    print("Warn: have job entry with no item data", j_name)
+                    continue
+
+                if not j_amount:
+                    print("Warn: have job entry with no amount, ", j_name)
+                    continue
+
+                item_name = ""
+                sub_item_name = None
+                # won't have sub item types without :
+                if ":" not in j_item:
+                    item_name = j_item
+                elif ":" in j_item:
+                    item_name, sub_item_name = j_item.split(":")
+                else:
+                    print("Warn: unhandled job item: ", j_item)
+
+                job_item = None
+                # find job_item if it already exists
+                for j_item in job_items:
+                    if j_item.item_name == item_name:
+                        job_item = j_item
+                if not job_item:
+                    print("Warn: found job with an estimate but no actual cost, ", item_name)
+                    print("HEYY", item_name)
+
+                if job_item.hasSub:
+                    job_item.processSubItem(sub_item_name, j_amount, actual=False)
+                else:
+                    job_item.estimate_amount += j_amount
+
+
+ 
+
+
                         
         # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
@@ -172,7 +232,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
         ITEM_NAME_COLUMN        = 3
         SUBITEM_NAME_COLUMN     = 4
-        ESTIMATED_COST_COLUMN   = 5
+        ESTIMATE_COST_COLUMN    = 5
         ACT_COST_COLUMN         = 7
         DIFF_COLUMN             = 9
 
@@ -182,42 +242,64 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
         i = 7  # starting point after 'Service' row
 
-        total_labor_cost = 0
-        total_cost = 0
+        total_actual_labor_cost    = 0
+        total_estimate_labor_cost  = 0
+        total_labor_cost_no_temp   = 0
+
+        total_estimate_cost = 0
+        total_actual_cost   = 0
+        total_diff          = 0
         # write job cost data
         for job_item in job_items:
             if not job_item.hasSub:
 
                 if "labor" in job_item.item_name.lower() and "temp" not in job_item.item_name.lower():
-                    total_labor_cost += job_item.amount
+                    total_labor_cost_no_temp += job_item.actual_amount
+                elif "labor" in job_item.item_name.lower():
+                    total_actual_labor_cost += job_item.actual_amount
+                    total_estimate_labor_cost += job_item.actual_amount
 
-                total_cost += job_item.amount
+                total_actual_cost += job_item.actual_amount
+                total_estimate_cost += job_item.estimate_amount
+                diff = job_item.estimate_amount - job_item.actual_amount
+                total_diff += diff
+
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = job_item.item_name 
-                sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.amount
-                sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
-                sheet.cell(row = i, column = DIFF_COLUMN).value = -job_item.amount
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = job_item.estimate_amount
+                sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.actual_amount
+                sheet.cell(row = i, column = DIFF_COLUMN).value = diff 
                 i += 1
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
                 i += 1
-                sub_total = 0
-                for s_item_name, s_amount in job_item.sub_items.items():
+                sub_actual_total = 0
+                sub_estimate_total = 0
+                for s_item_name, s_actual_amount in job_item.actual_sub_items.items():
+                    
+                    s_estimate_amount = job_item.estimate_sub_items[s_item_name] # 
 
                     if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
-                        total_labor_cost += s_amount 
+                        total_labor_cost_no_temp += s_actual_amount
+                    elif "labor" in s_item_name.lower():
+                        total_actual_labor_cost += s_actual_amount
+                        total_estimate_labor_cost += s_estimate_amount
 
-                    total_cost += s_amount
-                    sub_total += s_amount
+                    total_actual_cost += s_actual_amount
+                    total_estimate_cost += s_estimate_amount
+                    sub_actual_total += s_actual_amount
+                    sub_estimate_total += s_estimate_amount
+                    s_diff = s_estimate_amount - s_actual_amount
+
                     sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = s_item_name
-                    sheet.cell(row = i, column = ACT_COST_COLUMN).value = s_amount
-                    sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
-                    sheet.cell(row = i, column = DIFF_COLUMN).value = -s_amount
+                    sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = s_estimate_amount
+                    sheet.cell(row = i, column = ACT_COST_COLUMN).value = s_actual_amount
+                    sheet.cell(row = i, column = DIFF_COLUMN).value = s_diff
                     i += 1
                 # write out total for the subs
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total " + job_item.item_name
-                sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_total
-                sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
-                sheet.cell(row = i, column = DIFF_COLUMN).value = -sub_total
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = sub_estimate_total
+                sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_actual_total
+                sheet.cell(row = i, column = DIFF_COLUMN).value = sub_estimate_total - sub_actual_total
                 i += 1
 
         NUM_REVENUE_COLUMN = 11
@@ -235,31 +317,32 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 total_revenue_income += amount_cell.value
 
 
-        # total service
+        # total service, same as total??
         sheet.cell(row = i, column = 2).value = "Total Service"
         sheet.cell(row = i, column = 2).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_labor_cost
-        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
-        sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost 
+        sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
         i += 1
 
-        # total income
-        sheet.cell(row = i, column = 2).value = "Total Income"
+        # Other Charges
+        sheet.cell(row = i, column = 2).value = "Other Charges"
         sheet.cell(row = i, column = 2).font = Font(bold=True)
+        i += 1
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0.0
-        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
         i += 1
 
         # total
         sheet.cell(row = i, column = 1).value = "Total"
         sheet.cell(row = i, column = 1).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost
-        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = total_revenue_income
-        sheet.cell(row = i, column = DIFF_COLUMN).value = total_revenue_income - total_cost
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost
+        sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
         # total font bold
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_REVENUE_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
 
         i += 1
@@ -274,34 +357,34 @@ def createEVAJobWorkbook(eva_total_wb_path):
         Other OH: Multiply 0.005 to all costs
         Total Cost w/OH: Total Costs + Labor OH + Other OH
         '''
-        labor_oh = total_labor_cost * 0.3
-        other_oh = total_cost * 0.005
-        total_cost_w_oh = total_cost + labor_oh + other_oh
+        labor_oh = total_labor_cost_no_temp * 0.3
+        other_oh = total_actual_cost * 0.005
+        total_cost_w_oh = total_actual_cost + labor_oh + other_oh
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Labor"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value =  total_labor_cost
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_labor_cost_no_temp 
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Labor OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = labor_oh
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = labor_oh
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = other_oh
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = other_oh
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Cost w/ OH"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_cost_w_oh
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_cost_w_oh
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
 
         # column letter row number : column letter row number  for top left, bottom right
@@ -331,8 +414,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # write total income for the last time
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
 
         # clear out extra rows
