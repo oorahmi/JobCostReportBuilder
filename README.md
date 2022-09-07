@@ -27,3 +27,5 @@ The processed total job workbook will be saved as a copy in /processed
 Usage: 
 
     python createEVAJobWorkbook.py path_to_eva_total_workbook_file  
+    
+The processed total job workbook will be saved as a copy in /processed
