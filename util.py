@@ -1,13 +1,6 @@
-import sys
 import openpyxl
-from openpyxl.styles import Font
-from openpyxl.styles import Alignment
 from openpyxl.styles import Border, Side
-import os 
-import shutil
 from copy import copy
-from datetime import datetime
-from collections import OrderedDict
 
 def set_border(ws, cell_range):
 # https://stackoverflow.com/questions/34520764/apply-border-to-range-of-cells-using-openpyxl

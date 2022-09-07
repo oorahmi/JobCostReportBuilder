@@ -5,3 +5,6 @@ processed/Job In Progress Cost Detail as of 6-30-22 unsorted with header_process
 Job Actual Revenue Detail asof 6-30-2022.xlsx
 Revenue Detail asof 6-30-2022.xlsx
 .gitignore
+eva_total.xlsx
+*.pyc
+processed/eva_total_processed.xlsx
