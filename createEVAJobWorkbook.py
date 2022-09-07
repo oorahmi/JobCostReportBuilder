@@ -35,28 +35,23 @@ def createEVAJobWorkbook(eva_total_wb_path):
     shutil.copyfile(eva_total_wb_path, processed_file_path)
 
     eva_total_wb = openpyxl.load_workbook(processed_file_path) 
-    if not cost_detail_wb:
+    if not eva_total_wb:
         print("Error: failed to open workbook: ", processed_file_path)
         return
 
-    estimated_cost_detail_sheet = cost_detail_wb.active
-    estimated_cost_detail_sheet = cost_detail_wb.active
-
-    revenue_wb = openpyxl.load_workbook(revenue_wb_path) 
-    if not cost_detail_wb:
-        print("Error: failed to open workbook: ", revenue_wb_path)
-        return
-    
-    revenue_sheet = revenue_wb.active
+    actual_cost_detail_sheet    = eva_total_wb.worksheets[0]
+    revenue_sheet               = eva_total_wb.worksheets[1]
+    estimated_cost_detail_sheet = eva_total_wb.worksheets[2]
 
     #job_str_set = set()
     job_str_set = OrderedDict()
-    NAME_COLUMN = 8      # might switch between eva and non eva?
+
+    EVA_NAME_COLUMN = 11      
 
     # add new sheet for each unique job
     # column
-    for i in range(1, cost_detail_sheet.max_row + 1): 
-        job_data = cost_detail_sheet.cell(row = i, column = NAME_COLUMN).value
+    for i in range(1, actual_cost_detail_sheet.max_row + 1): 
+        job_data = actual_cost_detail_sheet.cell(row = i, column = EVA_NAME_COLUMN).value
 
         # format is currrently:   job_name:job_number type
         # is a job string? 
@@ -65,7 +60,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
             job_str_set[job_number] = None
 
     job_numbers = list(job_str_set.keys())
-    #job_numbers.sort()
     
     if len(job_numbers) == 0:
         print("Error: failed to find jobs in workbook: ", processed_file_path)
@@ -74,16 +68,16 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
     # add new sheet for each job number
     for job_number in job_numbers:
-        cost_detail_wb.create_sheet(title=job_number)
+        eva_total_wb.create_sheet(title=job_number)
 
     # copy empty job cost sheet
-    jc_wb = openpyxl.load_workbook(os.getcwd() + "/data/jc_blank.xlsx") 
-    if not jc_wb:
-        print("Error: failed to open data workbook: /data/jc_blank.xlsx")
+    eva_jc_wb = openpyxl.load_workbook(os.getcwd() + "/data/eva_jc_blank.xlsx") 
+    if not eva_jc_wb:
+        print("Error: failed to open data workbook: /data/eva_jc_blank.xlsx")
         sys.exit()
         return
 
-    DATE_COLUMN = 6
+    DATE_COLUMN = 8
     ITEM_COLUMN = 10      
     AMOUNT_COLUMN = 16
 
@@ -106,7 +100,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 self.sub_items[sub_item_name] += amount
             
     # SCOPED
-    def createJobCostSheet(sheet):
+    def createEVAJobCostSheet(sheet):
         # create job sheet
         job_number = sheet.title
 
@@ -176,11 +170,11 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # write date range
         sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
-        ITEM_NAME_COLUMN    = 3
-        SUBITEM_NAME_COLUMN = 4
-        ACT_COST_COLUMN     = 5
-        ACT_REVENUE_COLUMN  = 7
-        DIFF_COLUMN         = 9
+        ITEM_NAME_COLUMN        = 3
+        SUBITEM_NAME_COLUMN     = 4
+        ESTIMATED_COST_COLUMN   = 5
+        ACT_COST_COLUMN         = 7
+        DIFF_COLUMN             = 9
 
         # date and time
         sheet.cell(row = 1, column = DIFF_COLUMN).value = datetime.today().strftime("%H:%M %p")
@@ -351,14 +345,14 @@ def createEVAJobWorkbook(eva_total_wb_path):
     # -------------------------------------------------------------------------------- #
 
     # create and fill all job sheet data
-    for sheet in cost_detail_wb:
-        if sheet.title == 'Total':
-            continue
-        # copy initial format into empty sheet
-        copySheet(jc_wb.active, sheet)
-        createJobCostSheet(sheet)
+    # skip first 3
+    for i in range(3,len(eva_total_wb.sheetnames)):
+        sheet = eva_total_wb.worksheets[i]
+       # copy initial format into empty sheet
+        copySheet(eva_jc_wb.active, sheet)
+        createEVAJobCostSheet(sheet)
 
-    cost_detail_wb.save(processed_file_path)
+    eva_total_wb.save(processed_file_path)
 
 
 
