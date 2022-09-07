@@ -302,34 +302,19 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = DIFF_COLUMN).value = sub_estimate_total - sub_actual_total
                 i += 1
 
-        NUM_REVENUE_COLUMN = 11
-        NAME_REVENUE_COLUMN = 13
-        MEMO_REVENUE_COLUMN = 15
-        ITEM_REVENUE_COLUMN = 17
-        AMOUNT_REVENUE_COLUMN = 19
- 
-        # get total income
-        total_revenue_income = 0
-        for j in range(6, revenue_sheet.max_row + 1):    
-            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
-            if j_name and job_number in j_name:
-                amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
-                total_revenue_income += amount_cell.value
-
-
         # total service, same as total??
-        sheet.cell(row = i, column = 2).value = "Total Service"
-        sheet.cell(row = i, column = 2).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Service"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost 
         sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
         i += 1
 
         # Other Charges
-        sheet.cell(row = i, column = 2).value = "Other Charges"
-        sheet.cell(row = i, column = 2).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Other Charges"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = 0.0
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0.0
         sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
         i += 1
@@ -348,6 +333,90 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         # whitespace
         i += 1
+
+        sheet.cell(row = i, column = 1).value = "Estimated Contract Revenue"
+        sheet.cell(row = i, column = 1).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
+        i += 1
+
+        sheet.cell(row = i, column = 1).value = "Actual Revenue To Date"
+        sheet.cell(row = i, column = 1).font = Font(bold=True)
+        i += 1
+
+        NAME_REVENUE_COLUMN = 11
+        MEMO_REVENUE_COLUMN = 13
+        ITEM_REVENUE_COLUMN = 15
+        AMOUNT_REVENUE_COLUMN = 19
+ 
+        # get revenue info 
+
+        total_orig_contract    = 0
+        total_change_order     = 0
+        total_other_job_income = 0
+        total_revenue          = 0
+        total_retainage        = 0
+
+        for j in range(6, revenue_sheet.max_row + 1):    
+            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
+            if j_name and job_number in j_name:
+                amount = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN).value
+                item_str = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN).value
+                item_str = item_str.lower()
+
+                if "orig contract" in item_str:
+                    total_orig_contract += amount
+                elif "change order" in item_str:
+                    total_orig_contract += amount
+                elif "other job income" in item_str:
+                    total_other_job_income += amount
+                elif "retainage" in item_str:
+                    total_retainage += amount
+                
+                total_revenue += amount
+
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Orig Contract"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_orig_contract
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Change Order"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_change_order 
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other Job Income"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_other_job_income 
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Revenue Recognized to Date"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Retainage Held by Customer"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = -total_retainage
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue - total_retainage
+        i += 1
+        i += 1 # whitespace
+
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Estimated Labor including Temp Labor"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = "% Complete"
+        i += 1
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Labor including Temp Labor"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100),2) + "%"
+        i += 1
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost
+        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_estimate_labor_cost - total_actual_labor_cost
+        i += 1
+        i += 1 # whitespace
+
     
         # summary box
         '''
@@ -383,7 +452,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue_income
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
 
