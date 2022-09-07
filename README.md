@@ -13,11 +13,17 @@ or in the terminal
 Requires openpyxl, in your terminal run:
 
     pip install openpyxl
-
+    
+### Job Cost Report
 Usage:  
 
-    python createJobWorkbook.py path_to_job_workbook_file   path_to_revenue_report_workbook-file
+    python createJobWorkbook.py path_to_cost_detail_workbook_file   path_to_revenue_report_workbook-file
 
 The processed total job workbook will be saved as a copy in /processed
 
 
+### EVA Cost report
+
+Usage: 
+
+    python createEVAJobWorkbook.py path_to_eva_total_workbook_file  
