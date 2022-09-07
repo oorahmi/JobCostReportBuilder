@@ -346,7 +346,6 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
 
         # trim printable area to data?
         sheet._print_area = "A1:I"+str(i)
-        openpyxl.worksheet.Worksheet.set_printer_settings(sheet, orientation='portrait')
 
     # -------------------------------------------------------------------------------- #
 
