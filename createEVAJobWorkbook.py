@@ -188,8 +188,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 j_item = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_ITEM_COLUMN).value
                 j_estimate_amount = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_AMOUNT_COLUMN).value
 
-                print("JN: ",j_name, "J#: ", job_number, "es: ", j_estimate_amount)
-
                 if not j_item:
                     print("Warn: have job entry with no item data", j_name)
                     continue
@@ -284,8 +282,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sub_estimate_total = 0
                 for s_item_name, s_actual_amount in job_item.actual_sub_items.items():
                     
-                    s_estimate_amount = job_item.estimate_sub_items[s_item_name] # 
-                    print(s_item_name," ", s_actual_amount, " ",s_estimate_amount, " hey")
+                    s_estimate_amount = job_item.estimate_sub_items[s_item_name] 
 
                     if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
                         total_labor_cost_no_temp += s_actual_amount
@@ -340,18 +337,17 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
-
         i += 1
         # whitespace
         i += 1
 
-        sheet.cell(row = i, column = 2).value = "Estimated Contract Revenue"
-        sheet.cell(row = i, column = 2).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Estimated Contract Revenue"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
         i += 1
 
-        sheet.cell(row = i, column = 2).value = "Actual Revenue To Date"
-        sheet.cell(row = i, column = 2).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Actual Revenue To Date"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
 
         NAME_REVENUE_COLUMN = 11
@@ -385,6 +381,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 elif "retainage" in item_str:
                     total_retainage += amount
                 
+                # some amounts are negative
                 total_revenue += amount
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Orig Contract"
@@ -428,8 +425,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_estimate_labor_cost - total_actual_labor_cost
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - total_actual_labor_cost
         i += 1
         i += 1 # whitespace
 
@@ -493,7 +489,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
 
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
-                sheet.cell(row = i, column = ACT_COST_COLUMN).value = amount_cell.value
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = amount_cell.value
                 i += 1
 
         # write total income for the last time
