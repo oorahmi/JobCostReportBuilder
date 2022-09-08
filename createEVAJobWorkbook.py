@@ -3,7 +3,7 @@ Program to take in a .xslx for the estimated cost detail, actual cost detail, an
 
 Usage:  
 
-    python createJobWorkbook.py path_to_job_workbook_file  path_to_revenue_report_workbook-file path_to_actual_cost_report
+    python createEVAJobWorkbook.py path_to_eva_workbook_file 
 
 The processed total job workbook will be saved as a copy in /processed
 
@@ -12,7 +12,7 @@ Requires openpyxl
     pip install openpyxl
 
 Author: Brian Wright
-8-18-2022
+9-6-2022
 
 '''
 from util import set_border, copySheet
