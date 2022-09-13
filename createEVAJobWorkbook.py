@@ -15,6 +15,7 @@ Author: Brian Wright
 9-6-2022
 
 '''
+from xmlrpc.client import MAXINT
 from util import draw_line, set_border, copySheet
 
 import sys
@@ -82,7 +83,10 @@ def createEVAJobWorkbook(eva_total_wb_path):
     class JobItem:
         def __init__(self, item_name="", sub=False):
             self.item_name = item_name
-            self._job_number = int(item_name.split(" ")[0]) # catches them all currently..
+            if "Income" in self.item_name:
+                self._job_number = MAXINT # want income to be last in the order.
+            else:
+                self._job_number = int(item_name.split(" ")[0]) # catches them all currently... can be "Income"
             self.actual_amount   = 0  # used for tracking value for non sub-type
             self.estimate_amount = 0  
 
@@ -129,7 +133,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
             return self.estimate_total
 
         def __lt__(self, other_job: object) -> bool:
-            return self._job_number < other_job._job_number
+           return self._job_number < other_job._job_number
             
     # SCOPED
     def createEVAJobCostSheet(sheet):
@@ -176,9 +180,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     item_name, sub_item_name = j_item.split(":")
                 else:
                     print("Warn: unhandled job item: ", j_item)
-
-                if item_name == "Income":
-                    continue
 
                 job_item = None
                 # find job_item if it already exists
@@ -229,9 +230,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     item_name, sub_item_name = j_item.split(":")
                 else:
                     print("Warn: unhandled job item: ", j_item)
-
-                if item_name == "Income": # some incomes are in the estimate report, this should currently skip all income cases
-                    continue
 
                 job_item = None
                 # find job_item if it already exists
@@ -373,11 +371,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # whitespace
         i += 1
 
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Estimated Contract Revenue"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
-        i += 1
-
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Actual Revenue To Date"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
@@ -427,16 +420,16 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_other_job_income 
         i += 1
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Billed to Date Before Retainage"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Billed to Date Before Retainage"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage
         i += 1
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Retainage Held by Customer"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Retainage Held by Customer"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_retainage
         i += 1
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage - total_retainage
         i += 1
         i += 1 # whitespace
@@ -444,22 +437,20 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Estimated Labor including Temp Labor"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = "% Complete"
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Labor including Temp Labor"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost 
-        #total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost 
-
-
-        if total_estimate_labor_cost > 0:
-            sheet.cell(row = i, column = ACT_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100, 2)) + "%"
-        else:
-            sheet.cell(row = i, column = ACT_COST_COLUMN).value = "0.0%"
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost 
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - total_actual_labor_cost
+        i += 1
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Percent Complete"
+        if total_estimate_labor_cost > 0:
+            sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100, 2)) + "%"
+        else:
+            sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = "0.0%"
         i += 1
         i += 1 # whitespace
 
