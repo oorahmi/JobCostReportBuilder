@@ -128,8 +128,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
             return self.estimate_total
 
-
-
         def __lt__(self, other_job: object) -> bool:
             return self._job_number < other_job._job_number
             
@@ -166,7 +164,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     continue
 
                 if not j_actual_amount:
-                    print("Warn: have job entry with no amount, ", j_name)
+                    #print("Warn: have job entry with no actual amount, ", j_name)
                     continue
 
                 item_name = ""
@@ -241,7 +239,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     if j_item.item_name == item_name:
                         job_item = j_item
                 if not job_item:
-                    print("Warn: found job with an estimate but no actual cost, ", item_name, " ", sub_item_name)
+                    #print("Warn: found job with an estimate but no actual cost, ", item_name, " ", sub_item_name)
                     job_item = JobItem(item_name)
                     if sub_item_name:
                         job_item.hasSub = True
@@ -277,6 +275,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         total_actual_labor_cost    = 0
         total_estimate_labor_cost  = 0
         total_labor_cost_no_temp   = 0
+        total_temp_labor_cost      = 0
 
         total_estimate_cost = 0
         total_actual_cost   = 0
@@ -291,7 +290,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     total_labor_cost_no_temp += job_item.actual_amount
                     total_actual_labor_cost += job_item.actual_amount
                     total_estimate_labor_cost += job_item.estimate_amount
-                elif "labor" in job_item.item_name.lower():
+                elif "labor" in job_item.item_name.lower() and "temp" in job_item.item_name.lower():
+                    total_temp_labor_cost += job_item.actual_amount
                     total_actual_labor_cost += job_item.actual_amount
                     total_estimate_labor_cost += job_item.estimate_amount
 
@@ -304,9 +304,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.actual_amount
                 sheet.cell(row = i, column = DIFF_COLUMN).value = diff 
                 i += 1
-                # Draw line 
-                cell_range = "E" + str(i+2) + ":I" + str(i+2)
-                draw_line(sheet, cell_range) 
 
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
@@ -339,13 +336,17 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     i += 1
                 # write out total for the subs
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total " + job_item.item_name
+                sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
                 sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = sub_estimate_total
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_actual_total
+                sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
                 sheet.cell(row = i, column = DIFF_COLUMN).value = sub_estimate_total - sub_actual_total
+                sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
                 i += 1
-                # Draw line 
-                cell_range = "E" + str(i+2) + ":I" + str(i+2)
-                draw_line(sheet, cell_range) 
+            # Draw line 
+            cell_range = "E" + str(i+1) + ":I" + str(i+1)
+            draw_line(sheet, cell_range) 
 
         # whitespace
         i += 1
@@ -412,7 +413,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 elif "retainage" in item_str:
                     total_retainage += amount
                 
-                # some amounts are negative
             total_billed_before_retainage = total_orig_contract + total_change_order + total_other_job_income
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Orig Contract"
@@ -448,7 +448,10 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Labor including Temp Labor"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_actual_labor_cost 
+        #total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost 
+
+
         if total_estimate_labor_cost > 0:
             sheet.cell(row = i, column = ACT_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100, 2)) + "%"
         else:
@@ -495,7 +498,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage 
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
 
@@ -510,8 +513,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
 
-       # Grab all billed
-       # Could avoid doing this iteration twice
+        # Grab all billed
+        # Could avoid doing this iteration twice
         for j in range(6, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
@@ -523,10 +526,11 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = amount_cell.value
                 i += 1
 
-        # write total income for the last time
+        # write total billed to date items
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue
+        #NOTE: should be equivalent, could calc again to be safe
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage + total_retainage
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
 

@@ -51,7 +51,7 @@ def draw_line(ws, cell_range):
                 border.bottom = side
 
             # set new border only if it's one of the edge cells
-            if pos_x == 0 or pos_x == max_x or pos_y == 0 or pos_y == max_y:
+            if pos_y == 0 or pos_y == max_y:
                 cell.border = border
 
 
