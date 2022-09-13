@@ -430,7 +430,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage - total_retainage
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage + total_retainage
         i += 1
         i += 1 # whitespace
 
