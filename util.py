@@ -31,6 +31,31 @@ def set_border(ws, cell_range):
             if pos_x == 0 or pos_x == max_x or pos_y == 0 or pos_y == max_y:
                 cell.border = border
 
+# draw a line, am just removing all side and top capability from set_border, this may have unexpected behavior
+def draw_line(ws, cell_range):
+    rows = ws[cell_range]
+    side = Side(border_style='thin', color="FF000000")
+
+    rows = list(rows)  # we convert iterator to list for simplicity, but it's not memory efficient solution
+    max_y = len(rows) - 1  # index of the last row
+    for pos_y, cells in enumerate(rows):
+        max_x = len(cells) - 1  # index of the last cell
+        for pos_x, cell in enumerate(cells):
+            border = Border(
+                left=cell.border.left,
+                right=cell.border.right,
+                top=cell.border.top,
+                bottom=cell.border.bottom
+            )
+            if pos_y == max_y:
+                border.bottom = side
+
+            # set new border only if it's one of the edge cells
+            if pos_x == 0 or pos_x == max_x or pos_y == 0 or pos_y == max_y:
+                cell.border = border
+
+
+
 # cant copy sheet from one workbook to another without a deep level copy
 # https://stackoverflow.com/questions/42344041/how-to-copy-worksheet-from-one-workbook-to-another-one-using-openpyxl
 def copySheet(source_sheet, target_sheet):

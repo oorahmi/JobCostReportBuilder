@@ -15,13 +15,11 @@ Author: Brian Wright
 9-6-2022
 
 '''
-from util import set_border, copySheet
+from util import draw_line, set_border, copySheet
 
 import sys
 import openpyxl
 from openpyxl.styles import Font
-from openpyxl.styles import Alignment
-from openpyxl.styles import Border, Side
 import os 
 import shutil
 from copy import copy
@@ -82,14 +80,16 @@ def createEVAJobWorkbook(eva_total_wb_path):
     ACTUAL_AMOUNT_COLUMN = 19
 
     class JobItem:
-        def __init__(self, item_name=""):
+        def __init__(self, item_name="", sub=False):
             self.item_name = item_name
-            self.actual_amount    = 0  # used for tracking value for non sub-type
+            self._job_number = int(item_name.split(" ")[0]) # catches them all currently..
+            self.actual_amount   = 0  # used for tracking value for non sub-type
             self.estimate_amount = 0  
 
-            self.hasSub = False
+            self.hasSub = sub 
             self.actual_sub_items   = OrderedDict() 
             self.estimate_sub_items = OrderedDict() # contains list of (name, amount) pairs
+
         
         def processSubItem(self, sub_item_name, amount, actual=False):
             if not self.hasSub:
@@ -109,6 +109,29 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     self.actual_sub_items[sub_item_name] += amount
                 else:
                     self.estimate_sub_items[sub_item_name] += amount
+        
+        def getActualTotal(self):
+            if self.hasSub:
+                actual_total = 0
+                for k,v in self.actual_sub_items:
+                    actual_total += v
+                return actual_total
+
+            return self.actual_amount
+
+        def getEstimateTotal(self):
+            if self.hasSub:
+                estimate_total = 0
+                for k,v in self.estimate_sub_items:
+                    estimate_total += v
+                return estimate_total
+
+            return self.estimate_total
+
+
+
+        def __lt__(self, other_job: object) -> bool:
+            return self._job_number < other_job._job_number
             
     # SCOPED
     def createEVAJobCostSheet(sheet):
@@ -156,17 +179,20 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 else:
                     print("Warn: unhandled job item: ", j_item)
 
+                if item_name == "Income":
+                    continue
+
                 job_item = None
                 # find job_item if it already exists
                 for j_item in job_items:
                     if j_item.item_name == item_name:
                         job_item = j_item
                 if not job_item:
-                    job_item = JobItem(item_name)
                     if sub_item_name:
-                        job_item.hasSub = True
+                        job_item = JobItem(item_name, True)
                         job_item.processSubItem(sub_item_name, j_actual_amount, actual=True)
                     else:
+                        job_item = JobItem(item_name, False)
                         job_item.actual_amount += j_actual_amount
                     job_items.append(job_item)
                 else: # 
@@ -206,6 +232,9 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 else:
                     print("Warn: unhandled job item: ", j_item)
 
+                if item_name == "Income": # some incomes are in the estimate report, this should currently skip all income cases
+                    continue
+
                 job_item = None
                 # find job_item if it already exists
                 for j_item in job_items:
@@ -220,15 +249,13 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.estimate_amount += j_estimate_amount
                     job_items.append(job_item)
-
-
-                if job_item.hasSub:
-                    job_item.processSubItem(sub_item_name, j_estimate_amount, actual=False)
                 else:
-                    job_item.estimate_amount += j_estimate_amount
-
-
-                        
+                    if job_item.hasSub:
+                        job_item.processSubItem(sub_item_name, j_estimate_amount, actual=False)
+                    else:
+                        job_item.estimate_amount += j_estimate_amount
+                
+                
         # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
@@ -254,6 +281,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
         total_estimate_cost = 0
         total_actual_cost   = 0
 
+        job_items.sort()
+
         # write job cost data
         for job_item in job_items:
             if not job_item.hasSub:
@@ -275,6 +304,10 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.actual_amount
                 sheet.cell(row = i, column = DIFF_COLUMN).value = diff 
                 i += 1
+                # Draw line 
+                cell_range = "E" + str(i+2) + ":I" + str(i+2)
+                draw_line(sheet, cell_range) 
+
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
                 i += 1
@@ -294,6 +327,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
                     total_actual_cost += s_actual_amount
                     total_estimate_cost += s_estimate_amount
+                    #TODO: could handle these in the job items themselves
                     sub_actual_total += s_actual_amount
                     sub_estimate_total += s_estimate_amount
                     s_diff = s_estimate_amount - s_actual_amount
@@ -309,6 +343,12 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_actual_total
                 sheet.cell(row = i, column = DIFF_COLUMN).value = sub_estimate_total - sub_actual_total
                 i += 1
+                # Draw line 
+                cell_range = "E" + str(i+2) + ":I" + str(i+2)
+                draw_line(sheet, cell_range) 
+
+        # whitespace
+        i += 1
 
         # total service, same as total??
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Service"
@@ -316,15 +356,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost 
         sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
-        i += 1
-
-        # Other Charges
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Other Charges"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        i += 1
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = 0.0
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = 0.0
-        sheet.cell(row = i, column = DIFF_COLUMN).value = 0.0
         i += 1
 
         # total
@@ -382,7 +413,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     total_retainage += amount
                 
                 # some amounts are negative
-                total_revenue += amount
+            total_billed_before_retainage = total_orig_contract + total_change_order + total_other_job_income
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Orig Contract"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
@@ -396,17 +427,17 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_other_job_income 
         i += 1
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Revenue Recognized to Date"
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Billed to Date Before Retainage"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Retainage Held by Customer"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = -total_retainage
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_retainage
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_revenue - total_retainage
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage - total_retainage
         i += 1
         i += 1 # whitespace
 
@@ -421,7 +452,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         if total_estimate_labor_cost > 0:
             sheet.cell(row = i, column = ACT_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100, 2)) + "%"
         else:
-            sheet.cell(row = i, column = ACT_COST_COLUMN).value = str(0.0) + "%"
+            sheet.cell(row = i, column = ACT_COST_COLUMN).value = "0.0%"
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
@@ -514,6 +545,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
        # copy initial format into empty sheet
         copySheet(eva_jc_wb.active, sheet)
         createEVAJobCostSheet(sheet)
+        sheet.orientation = 'portrait'
 
     eva_total_wb.save(processed_file_path)
 
