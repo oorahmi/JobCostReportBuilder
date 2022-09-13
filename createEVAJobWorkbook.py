@@ -349,14 +349,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # whitespace
         i += 1
 
-        # total service, same as total??
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Service"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_cost
-        sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost 
-        sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
-        i += 1
-
         # total
         sheet.cell(row = i, column = 2).value = "Total"
         sheet.cell(row = i, column = 2).font = Font(bold=True)
