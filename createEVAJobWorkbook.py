@@ -284,14 +284,13 @@ def createEVAJobWorkbook(eva_total_wb_path):
         for job_item in job_items:
             if not job_item.hasSub:
 
-                if "labor" in job_item.item_name.lower() and "temp" not in job_item.item_name.lower():
-                    total_labor_cost_no_temp += job_item.actual_amount
+                if "labor" in job_item.item_name.lower():
                     total_actual_labor_cost += job_item.actual_amount
                     total_estimate_labor_cost += job_item.estimate_amount
-                elif "labor" in job_item.item_name.lower() and "temp" in job_item.item_name.lower():
-                    total_temp_labor_cost += job_item.actual_amount
-                    total_actual_labor_cost += job_item.actual_amount
-                    total_estimate_labor_cost += job_item.estimate_amount
+                    if "temp" not in job_item.item_name.lower():
+                        total_labor_cost_no_temp += job_item.actual_amount
+                    elif "temp" in job_item.item_name.lower():
+                        total_temp_labor_cost += job_item.actual_amount
 
                 total_actual_cost += job_item.actual_amount
                 total_estimate_cost += job_item.estimate_amount
@@ -313,12 +312,13 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     s_estimate_amount = job_item.estimate_sub_items[s_item_name] 
 
                     if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
-                        total_labor_cost_no_temp += s_actual_amount
                         total_actual_labor_cost += s_actual_amount
                         total_estimate_labor_cost += s_estimate_amount
-                    elif "labor" in s_item_name.lower():
-                        total_actual_labor_cost += s_actual_amount
-                        total_estimate_labor_cost += s_estimate_amount
+                        if "temp" not in job_item.item_name.lower():
+                            total_labor_cost_no_temp += s_actual_amount
+                        elif "temp" in job_item.item_name.lower():
+                            total_temp_labor_cost += s_actual_amount
+
 
                     total_actual_cost += s_actual_amount
                     total_estimate_cost += s_estimate_amount
