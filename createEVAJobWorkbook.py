@@ -311,7 +311,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     
                     s_estimate_amount = job_item.estimate_sub_items[s_item_name] 
 
-                    if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
+                    if "labor" in s_item_name.lower():
                         total_actual_labor_cost += s_actual_amount
                         total_estimate_labor_cost += s_estimate_amount
                         if "temp" not in job_item.item_name.lower():
@@ -412,7 +412,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_other_job_income 
         i += 1
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Billed to Date Before Retainage"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Billed to Date"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage
         i += 1
