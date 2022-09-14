@@ -156,7 +156,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
                 else:
-                    print("Warn: Job without a date: ", j_name)
+                    print("Warn: Actual job without a date: ", j_name)
 
                 if not job_name:
                     job_name = j_name 
@@ -200,6 +200,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.actual_amount += j_actual_amount
 
+        ESTIMATE_DATE_COLUMN   = 8
         ESTIMATE_NAME_COLUMN   = 10
         ESTIMATE_ITEM_COLUMN   = 12
         ESTIMATE_AMOUNT_COLUMN = 16
@@ -209,6 +210,13 @@ def createEVAJobWorkbook(eva_total_wb_path):
             j_name = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_NAME_COLUMN).value
 
             if j_name and job_number in j_name:
+
+                date = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_DATE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Estimate Job without a date: ", j_name)
 
                 j_item = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_ITEM_COLUMN).value
                 j_estimate_amount = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_AMOUNT_COLUMN).value
@@ -254,9 +262,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 
         # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
-
-        # write date range
-        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         ITEM_NAME_COLUMN        = 3
         SUBITEM_NAME_COLUMN     = 4
@@ -367,6 +372,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
         i += 1
 
+        DATE_REVENUE_COLUMN = 9
         NAME_REVENUE_COLUMN = 11
         MEMO_REVENUE_COLUMN = 13
         ITEM_REVENUE_COLUMN = 15
@@ -377,12 +383,20 @@ def createEVAJobWorkbook(eva_total_wb_path):
         total_orig_contract    = 0
         total_change_order     = 0
         total_other_job_income = 0
-        total_revenue          = 0
         total_retainage        = 0
 
         for j in range(6, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
+
+                date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Revenue Job without a date: ", j_name)
+
+
                 amount = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN).value
                 item_str = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN).value
                 if not item_str:
@@ -436,7 +450,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - total_actual_labor_cost
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - (total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost)
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Percent Complete"
         if total_estimate_labor_cost > 0:
@@ -516,6 +530,9 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage + total_retainage
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
         i += 1
+
+        # write date range
+        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         # clear out extra rows
         sheet.delete_rows(i, sheet.max_row - i)

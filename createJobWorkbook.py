@@ -173,8 +173,6 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         # append job name at top text
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
-        # write date range
-        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         ITEM_NAME_COLUMN    = 3
         SUBITEM_NAME_COLUMN = 4
@@ -226,6 +224,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -sub_total
                 i += 1
 
+        DATE_REVENUE_COLUMN = 9
         NUM_REVENUE_COLUMN = 11
         NAME_REVENUE_COLUMN = 13
         MEMO_REVENUE_COLUMN = 15
@@ -237,6 +236,14 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         for j in range(6, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
+
+                date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Job without a date: ", j_name)
+
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
                 total_revenue_income += amount_cell.value
 
@@ -326,6 +333,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         for j in range(6, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
+
                 memo_cell = revenue_sheet.cell(row = j, column = MEMO_REVENUE_COLUMN) 
                 item_cell = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN) 
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
@@ -340,6 +348,9 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_revenue_income
         sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
         i += 1
+
+        # write date range
+        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         # clear out extra rows
         sheet.delete_rows(i, sheet.max_row - i)
