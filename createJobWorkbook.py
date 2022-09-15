@@ -237,12 +237,14 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
 
+                '''
                 date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
                 if date:
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
                 else:
                     print("Warn: Job without a date: ", j_name)
+                '''
 
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
                 total_revenue_income += amount_cell.value

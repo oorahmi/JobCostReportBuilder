@@ -150,14 +150,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
             j_name = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_NAME_COLUMN).value
 
             if j_name and job_number in j_name:
-
-                date = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_DATE_COLUMN).value
-                if date:
-                    min_date = min(min_date, date)
-                    max_date = max(max_date, date)
-                else:
-                    print("Warn: Actual job without a date: ", j_name)
-
+                
                 if not job_name:
                     job_name = j_name 
 
@@ -170,6 +163,14 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 if not j_actual_amount:
                     #print("Warn: have job entry with no actual amount, ", j_name)
                     continue
+
+                date = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_DATE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Actual job without a date: ", j_name)
+
 
                 item_name = ""
                 sub_item_name = None
@@ -211,13 +212,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
             if j_name and job_number in j_name:
 
-                date = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_DATE_COLUMN).value
-                if date:
-                    min_date = min(min_date, date)
-                    max_date = max(max_date, date)
-                else:
-                    print("Warn: Estimate Job without a date: ", j_name)
-
                 j_item = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_ITEM_COLUMN).value
                 j_estimate_amount = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_AMOUNT_COLUMN).value
 
@@ -228,6 +222,15 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 if not j_estimate_amount:
                     print("Warn: have job entry with no estimate amount, ", j_name)
                     continue
+
+                '''
+                date = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_DATE_COLUMN).value
+                if date:
+                    min_date = min(min_date, date)
+                    max_date = max(max_date, date)
+                else:
+                    print("Warn: Estimate Job without a date: ", j_name)
+                '''
 
                 item_name = ""
                 sub_item_name = None
@@ -388,20 +391,21 @@ def createEVAJobWorkbook(eva_total_wb_path):
         for j in range(6, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
+                
+                amount = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN).value
+                item_str = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN).value
+                if not item_str:
+                    continue
+                item_str = item_str.lower()
 
+                '''
                 date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
                 if date:
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
                 else:
                     print("Warn: Revenue Job without a date: ", j_name)
-
-
-                amount = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN).value
-                item_str = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN).value
-                if not item_str:
-                    continue
-                item_str = item_str.lower()
+                '''
 
                 if "orig contract" in item_str:
                     total_orig_contract += amount
@@ -516,7 +520,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
             j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
             if j_name and job_number in j_name:
                 memo_cell = revenue_sheet.cell(row = j, column = MEMO_REVENUE_COLUMN) 
-                item_cell = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN) 
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
 
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
