@@ -201,7 +201,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.actual_amount += j_actual_amount
 
-        ESTIMATE_DATE_COLUMN   = 8
         ESTIMATE_NAME_COLUMN   = 10
         ESTIMATE_ITEM_COLUMN   = 12
         ESTIMATE_AMOUNT_COLUMN = 16
@@ -222,15 +221,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 if not j_estimate_amount:
                     print("Warn: have job entry with no estimate amount, ", j_name)
                     continue
-
-                '''
-                date = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_DATE_COLUMN).value
-                if date:
-                    min_date = min(min_date, date)
-                    max_date = max(max_date, date)
-                else:
-                    print("Warn: Estimate Job without a date: ", j_name)
-                '''
 
                 item_name = ""
                 sub_item_name = None
@@ -351,8 +341,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
                 i += 1
             # Draw line 
-            cell_range = "E" + str(i+1) + ":I" + str(i+1)
-            draw_line(sheet, cell_range) 
+            #cell_range = "E" + str(i+1) + ":I" + str(i+1)
+            #draw_line(sheet, cell_range) 
 
         # whitespace
         i += 1
@@ -398,14 +388,12 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     continue
                 item_str = item_str.lower()
 
-                '''
                 date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
                 if date:
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
                 else:
                     print("Warn: Revenue Job without a date: ", j_name)
-                '''
 
                 if "orig contract" in item_str:
                     total_orig_contract += amount
