@@ -17,7 +17,7 @@ Author: Brian Wright
 
 '''
 
-from util import set_border, copySheet
+from util import set_border, copySheet, draw_line
 
 import sys
 import openpyxl
@@ -201,6 +201,10 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
                 sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -job_item.amount
                 i += 1
+                # Draw line 
+                cell_range = "E" + str(i-1) + ":I" + str(i-1)
+                draw_line(sheet, cell_range) 
+
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
                 i += 1
@@ -223,6 +227,9 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
                 sheet.cell(row = i, column = ACT_REVENUE_COLUMN).value = 0.0
                 sheet.cell(row = i, column = DIFF_COLUMN).value = -sub_total
                 i += 1
+                # Draw line 
+                cell_range = "E" + str(i-2) + ":I" + str(i-2)
+                draw_line(sheet, cell_range) 
 
         DATE_REVENUE_COLUMN = 9
         NUM_REVENUE_COLUMN = 11

@@ -278,6 +278,11 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
         job_items.sort()
 
+        FONT = "Arial"
+        FONT_SIZE = 9
+        default_font = Font(bold=False,name=FONT,sz=FONT_SIZE)
+        bold_font = Font(bold=True,name=FONT,sz=FONT_SIZE)
+
         # write job cost data
         for job_item in job_items:
             if not job_item.hasSub:
@@ -295,10 +300,17 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 diff = job_item.estimate_amount - job_item.actual_amount
 
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = job_item.item_name 
+                sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
                 sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = job_item.estimate_amount
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = job_item.actual_amount
+                sheet.cell(row = i, column = ACT_COST_COLUMN).font = bold_font
                 sheet.cell(row = i, column = DIFF_COLUMN).value = diff 
+                sheet.cell(row = i, column = DIFF_COLUMN).font = bold_font
                 i += 1
+                # Draw line 
+                cell_range = "E" + str(i-1) + ":I" + str(i-1)
+                draw_line(sheet, cell_range) 
 
             else:
                 sheet.cell(row = i, column = 3).value = job_item.item_name 
@@ -327,22 +339,25 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
                     sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = s_item_name
                     sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = s_estimate_amount
+                    sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = default_font
                     sheet.cell(row = i, column = ACT_COST_COLUMN).value = s_actual_amount
+                    sheet.cell(row = i, column = ACT_COST_COLUMN).font = default_font
                     sheet.cell(row = i, column = DIFF_COLUMN).value = s_diff
+                    sheet.cell(row = i, column = DIFF_COLUMN).font = default_font
                     i += 1
                 # write out total for the subs
                 sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total " + job_item.item_name
-                sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+                sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
                 sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = sub_estimate_total
-                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
                 sheet.cell(row = i, column = ACT_COST_COLUMN).value = sub_actual_total
-                sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
+                sheet.cell(row = i, column = ACT_COST_COLUMN).font = bold_font
                 sheet.cell(row = i, column = DIFF_COLUMN).value = sub_estimate_total - sub_actual_total
-                sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
+                sheet.cell(row = i, column = DIFF_COLUMN).font = bold_font
                 i += 1
-            # Draw line 
-            #cell_range = "E" + str(i+1) + ":I" + str(i+1)
-            #draw_line(sheet, cell_range) 
+                # Draw line 
+                cell_range = "E" + str(i-2) + ":I" + str(i-2)
+                draw_line(sheet, cell_range) 
 
         # whitespace
         i += 1
@@ -354,15 +369,15 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ACT_COST_COLUMN).value = total_actual_cost
         sheet.cell(row = i, column = DIFF_COLUMN).value = total_estimate_cost - total_actual_cost
         # total font bold
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = ACT_COST_COLUMN).font = Font(bold=True)
-        sheet.cell(row = i, column = DIFF_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
+        sheet.cell(row = i, column = ACT_COST_COLUMN).font = bold_font
+        sheet.cell(row = i, column = DIFF_COLUMN).font = bold_font
         i += 1
         # whitespace
         i += 1
 
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Actual Revenue To Date"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         i += 1
 
         DATE_REVENUE_COLUMN = 9
@@ -407,41 +422,41 @@ def createEVAJobWorkbook(eva_total_wb_path):
             total_billed_before_retainage = total_orig_contract + total_change_order + total_other_job_income
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Orig Contract"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_orig_contract
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Change Order"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_change_order 
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other Job Income"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_other_job_income 
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Billed to Date"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Retainage Held by Customer"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_retainage
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Revenue Collected to Date"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage + total_retainage
         i += 1
         i += 1 # whitespace
 
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Estimated Labor including Temp Labor"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Total Actual Labor including Temp Labor"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost 
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Estimated vs Actual Difference"
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - (total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost)
         i += 1
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Percent Complete"
@@ -466,29 +481,29 @@ def createEVAJobWorkbook(eva_total_wb_path):
         total_cost_w_oh = total_actual_cost + labor_oh + other_oh
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Labor"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_labor_cost_no_temp 
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Labor OH"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = labor_oh
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Other OH"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = other_oh
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total Cost w/ OH"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_cost_w_oh
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage 
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
 
         # column letter row number : column letter row number  for top left, bottom right
@@ -499,7 +514,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
 
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Billed To Date"
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         i += 1
 
         # Grab all billed
@@ -511,22 +526,24 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
 
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
+                sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = default_font
                 sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = amount_cell.value
+                sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = default_font
                 i += 1
 
         # write total billed to date items
         sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = "Total" 
-        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = bold_font
         #NOTE: should be equivalent, could calc again to be safe
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_billed_before_retainage + total_retainage
-        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = Font(bold=True)
+        sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).font = bold_font
         i += 1
 
         # write date range
         sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         # clear out extra rows
-        sheet.delete_rows(i, sheet.max_row - i)
+        #sheet.delete_rows(i, sheet.max_row - i)
 
         # trim printable area to data?
         sheet._print_area = "A1:I"+str(i)

@@ -32,6 +32,7 @@ def set_border(ws, cell_range):
                 cell.border = border
 
 # draw a line, am just removing all side and top capability from set_border, this may have unexpected behavior
+# draws expected line at row - 1
 def draw_line(ws, cell_range):
     rows = ws[cell_range]
     side = Side(border_style='thin', color="FF000000")
@@ -42,9 +43,6 @@ def draw_line(ws, cell_range):
         max_x = len(cells) - 1  # index of the last cell
         for pos_x, cell in enumerate(cells):
             border = Border(
-                left=cell.border.left,
-                right=cell.border.right,
-                top=cell.border.top,
                 bottom=cell.border.bottom
             )
             if pos_y == max_y:
