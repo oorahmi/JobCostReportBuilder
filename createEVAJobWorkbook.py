@@ -403,12 +403,16 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     continue
                 item_str = item_str.lower()
 
-                date = revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value
+                # issue with the dates
+                # https://stackoverflow.com/questions/57530408/python-reads-inaccurately-from-excel-date-time-field
+                '''
+                date = str(revenue_sheet.cell(row = i, column = DATE_REVENUE_COLUMN).value)
                 if date:
                     min_date = min(min_date, date)
                     max_date = max(max_date, date)
                 else:
                     print("Warn: Revenue Job without a date: ", j_name)
+                '''
 
                 if "orig contract" in item_str:
                     total_orig_contract += amount
@@ -540,7 +544,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
 
         # write date range
-        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
+        #sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
         # clear out extra rows
         #sheet.delete_rows(i, sheet.max_row - i)
