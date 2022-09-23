@@ -463,7 +463,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = total_estimate_labor_cost - (total_labor_cost_no_temp + .3 * total_labor_cost_no_temp + total_temp_labor_cost)
         i += 1
-        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Percent Complete"
+        sheet.cell(row = i, column = ITEM_NAME_COLUMN).value = "Percent Complete based on Labor Costs"
         if total_estimate_labor_cost > 0:
             sheet.cell(row = i, column = ESTIMATE_COST_COLUMN).value = str(round((total_actual_labor_cost/total_estimate_labor_cost) * 100, 2)) + "%"
         else:
