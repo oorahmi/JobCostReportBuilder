@@ -134,11 +134,11 @@ def createWIPReport(eva_wb_path, current_quarter):
 
     # NOTE: dont need to store these seperately but nicer to work with?
     ordered_sheets = []
-    for job_number in ordered_job_numbers:
+    for j_number in ordered_job_numbers:
         # get correct sheet
         for i in range(3, len(eva_total_wb.worksheets)): 
             job_sheet = eva_total_wb.worksheets[i]
-            if job_number == job_sheet.title:
+            if j_number == job_sheet.title:
                 ordered_sheets.append(job_sheet)
     
     # write job data
@@ -164,8 +164,8 @@ def createWIPReport(eva_wb_path, current_quarter):
         job_name = job_sheet.cell(row = 2, column = 1).value
         # trimming off "Job Estimates vs. Actuals Detail for "
         job_name = job_name[37:]
-        name_index = job_name.find(job_number) + 9 # job number length
-        job_text = job_name[name_index:]
+        name_index = job_name.find(job_number) + 7 # job number length
+        job_text = job_name[name_index:].strip()
         if "Food Lion" in job_name:
             if job_number in m_fl_job_numbers:
                 wip_report_sheet.cell(row = i, column = WIP_JOB_NAME_COlUMN).value = "Maint. FL " + str(job_number[3:]) + " " + job_text
