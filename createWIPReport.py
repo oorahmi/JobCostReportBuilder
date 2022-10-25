@@ -97,7 +97,8 @@ def createWIPReport(eva_wb_path, current_quarter):
     WIP_Q_OTH_OVERHEAD_COlUMN = 21
     WIP_Q_PROFIT_LOSS_COlUMN = 22
 
-    # do dates for columns
+    # do quarter dates for columns
+    wip_report_sheet.cell(row = 3, column = 1).value = "As of " + str(current_quarter) + "Q" + str(year)
     wip_report_sheet.cell(row = 5, column = WIP_Q_REVENUES_COlUMN).value = str(current_quarter) + "Q" + str(year)
     wip_report_sheet.cell(row = 5, column = WIP_Q_COSTS_COlUMN).value = str(current_quarter) + "Q" + str(year)
     wip_report_sheet.cell(row = 5, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = str(current_quarter) + "Q" + str(year)
