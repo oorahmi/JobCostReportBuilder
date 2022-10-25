@@ -31,3 +31,11 @@ Usage:
     python createEVAJobWorkbook.py path_to_eva_total_workbook_file  
     
 The processed total job workbook will be saved as a copy in /processed
+
+### WIP report
+
+Usage:
+
+    python createWIPReport.py path_to_processed_eva_workbook quarter_to_process (1-4)
+    
+The processed WIP report will be saved in /processed
