@@ -3,7 +3,7 @@ Program to take in a eva report and output a wip report
 
 Usage:  
 
-    python createWIPReport.py path_to_eva_workbook_file 
+    python createWIPReport.py path_to_eva_workbook_file quarter_to_process(1-4)
 
 The wip report will be saved in /processed
 
@@ -91,7 +91,7 @@ def createWIPReport(eva_wb_path, current_quarter):
     WIP_COST_IN_EXEC_BILLINGS_COlUMN = 15
     WIP_BILLINGS_IN_EXCESS_COlUMN = 16
     WIP_BACKLOG_COlUMN = 17
-    WIP_Q_REVENUES_COlUMN = 18 # NOTE: omitting
+    WIP_Q_REVENUES_COlUMN = 18 # NOTE: omitting calculation
     WIP_Q_COSTS_COlUMN = 19
     WIP_Q_LAB_OVERHEAD_COlUMN = 20
     WIP_Q_OTH_OVERHEAD_COlUMN = 21
