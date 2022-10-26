@@ -322,7 +322,7 @@ def createWIPReport(eva_wb_path, current_quarter):
     wip_report_sheet.cell(row = 61, column = WIP_Q_COSTS_COlUMN).value = '=SUM(S7:S60)' 
     wip_report_sheet.cell(row = 61, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = '=SUM(T7:T60)' 
     wip_report_sheet.cell(row = 61, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = '=SUM(U7:U60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_PROFIT_LOSS_COlUMN).value = '=AGGREGATE(9,7,V7:V60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_PROFIT_LOSS_COlUMN).value = '=SUM(V7:V60)' 
 
     wip_report_wb.save(processed_file_path)
 
