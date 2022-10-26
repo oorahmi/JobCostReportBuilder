@@ -15,12 +15,8 @@ Author: Brian Wright
 10-19-2022
 
 '''
-from xmlrpc.client import MAXINT
-from util import draw_line, set_border, copySheet
-
 import sys
 import openpyxl
-from openpyxl.styles import Font
 import os 
 import shutil
 from copy import copy
@@ -104,6 +100,8 @@ def createWIPReport(eva_wb_path, current_quarter):
     wip_report_sheet.cell(row = 5, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = str(current_quarter) + "Q" + str(year)
     wip_report_sheet.cell(row = 5, column = WIP_Q_OTH_OVERHEAD_COlUMN ).value = str(current_quarter) + "Q" + str(year)
     wip_report_sheet.cell(row = 5, column = WIP_Q_PROFIT_LOSS_COlUMN ).value = str(current_quarter) + "Q" + str(year)
+    wip_report_sheet.title = str(current_quarter) + "Q" + str(year)
+
 
     if len(eva_total_wb.worksheets)  <= 3:
         print("Error: eva workbook does not have job sheets?")
@@ -151,8 +149,8 @@ def createWIPReport(eva_wb_path, current_quarter):
         # write formulaic columns
         wip_report_sheet.cell(row = k, column = WIP_TOTAL_PRICE_COlUMN).value = "=D" + i + "+E" + i
         wip_report_sheet.cell(row = k, column = WIP_ESTIMATED_PROFIT_COlUMN).value = "=+F" + i + "-G" + i
-        wip_report_sheet.cell(row = k, column = WIP_ESTIMATED_PROFIT_PERC_COlUMN).value = "=H" + i + "/G" + i
-        wip_report_sheet.cell(row = k, column = WIP_PERC_COMPLETION_COlUMN).value = "=+J" + i + "/G" + i
+        wip_report_sheet.cell(row = k, column = WIP_ESTIMATED_PROFIT_PERC_COlUMN).value = "=IFERROR((H" + i + "/G" + i + "), 0)"
+        wip_report_sheet.cell(row = k, column = WIP_PERC_COMPLETION_COlUMN).value = "=IFERROR((J" + i + "/G" + i + "), 0)"
         wip_report_sheet.cell(row = k, column = WIP_REVENUES_EARNED_TO_DATE_COlUMN).value = "=F" + i + "*K" + i
         wip_report_sheet.cell(row = k, column = WIP_COST_IN_EXEC_BILLINGS_COlUMN).value = '=IF(L'+i+'>M'+i+',L'+i+'-M'+i+',IF((L'+i+'-M'+i+')<-1,"-",0))'
         wip_report_sheet.cell(row = k, column = WIP_BILLINGS_IN_EXCESS_COlUMN).value = '=IF(L'+i+'>M'+i+',"-",L'+i+'-M'+i+')'
@@ -222,9 +220,20 @@ def createWIPReport(eva_wb_path, current_quarter):
         ESTIMATE_DESC_COLUMN   = 12
         ESTIMATE_AMOUNT_COLUMN = 16
 
+        #if larger than 
         if estimate_total > 0:
             wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = estimate_total 
-            # find orig_contract income from estimate sheet
+
+            # need to factor in extra original cost if applicable
+            approved_co = 0
+            if orig_contract > estimate_total:
+                approved_co = (orig_contract - estimate_total) + change_order + other_job_income
+            else:
+                approved_co = change_order + other_job_income
+
+            wip_report_sheet.cell(row = i, column = WIP_APPROVED_CO_COlUMN).value = approved_co
+
+            # find orig_contract income from estimate sheet, only affets
             orig_contract_from_estimate = 0
 
             for t in range(5, estimate_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
@@ -236,15 +245,17 @@ def createWIPReport(eva_wb_path, current_quarter):
                     e_amount = estimate_cost_detail_sheet.cell(row = t, column = ESTIMATE_AMOUNT_COLUMN).value
                     orig_contract_from_estimate += e_amount
 
-            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = estimate_total - orig_contract_from_estimate + (change_order * .95)
+            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = estimate_total - orig_contract_from_estimate + (approved_co * .95)
+
+
         else: # no estimate
-            wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = orig_contract + other_job_income
+            wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = orig_contract 
+            wip_report_sheet.cell(row = i, column = WIP_APPROVED_CO_COlUMN).value = change_order + other_job_income
             #                                                                           not sure if change_order makes sense here, but just need previous total price
-            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = (orig_contract + other_job_income + change_order) * .95
+            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = (orig_contract + change_order + other_job_income ) * .95
 
 
         # fill in simple columns
-        wip_report_sheet.cell(row = i, column = WIP_APPROVED_CO_COlUMN).value = change_order 
         wip_report_sheet.cell(row = i, column = WIP_ACTUAL_COST_TO_DATE_COlUMN).value = total_cost_w_oh 
         wip_report_sheet.cell(row = i, column = WIP_BILLINGS_TO_DATE_COlUMN).value = billed_to_date 
         wip_report_sheet.cell(row = i, column = WIP_RETAINAGE_COlUMN).value = retainage 
@@ -289,6 +300,29 @@ def createWIPReport(eva_wb_path, current_quarter):
         wip_report_sheet.cell(row = i, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = q_other_oh
 
         i += 1 # next job
+    
+    # calculate totals of each column
+    # writing to bottom of current bounding box
+    # TODO: dynamic bounding box and do this after all jobs
+    wip_report_sheet.cell(row = 61, column = WIP_CONTRACT_PRICE_COlUMN).value ='=SUM(D7:D60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_APPROVED_CO_COlUMN).value ='=SUM(E7:E60)'  
+    wip_report_sheet.cell(row = 61, column = WIP_TOTAL_PRICE_COlUMN).value = '=SUM(F7:F60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_COST_COlUMN).value ='=SUM(G7:G60)'
+    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_PROFIT_COlUMN).value = '=SUM(H7:H60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_PROFIT_PERC_COlUMN).value = '=AVERAGE(I7:I60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_ACTUAL_COST_TO_DATE_COlUMN).value = '=SUM(J7:J60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_PERC_COMPLETION_COlUMN).value = '=AVERAGE(K7:K60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_REVENUES_EARNED_TO_DATE_COlUMN).value = '=SUM(L7:L60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_BILLINGS_TO_DATE_COlUMN).value = '=SUM(M7:M60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_RETAINAGE_COlUMN).value = '=SUM(N7:N60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_COST_IN_EXEC_BILLINGS_COlUMN).value = '=SUM(O7:O60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_BILLINGS_IN_EXCESS_COlUMN).value = '=SUM(P7:P60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_BACKLOG_COlUMN).value = '=SUM(Q7:Q60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_REVENUES_COlUMN).value = '=SUM(R7:R60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_COSTS_COlUMN).value = '=SUM(S7:S60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = '=SUM(T7:T60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = '=SUM(U7:U60)' 
+    wip_report_sheet.cell(row = 61, column = WIP_Q_PROFIT_LOSS_COlUMN).value = '=AGGREGATE(9,7,V7:V60)' 
 
     wip_report_wb.save(processed_file_path)
 
