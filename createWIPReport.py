@@ -217,7 +217,7 @@ def createWIPReport(eva_wb_path, current_quarter):
 
         
         ESTIMATE_NAME_COLUMN   = 10
-        ESTIMATE_DESC_COLUMN   = 12
+        ESTIMATE_DESC_COLUMN   = 14
         ESTIMATE_AMOUNT_COLUMN = 16
 
         #if larger than 
@@ -244,8 +244,9 @@ def createWIPReport(eva_wb_path, current_quarter):
                 if job_number in e_name and "Original Contract Income" == e_desc:
                     e_amount = estimate_cost_detail_sheet.cell(row = t, column = ESTIMATE_AMOUNT_COLUMN).value
                     orig_contract_from_estimate += e_amount
+            
 
-            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = estimate_total - orig_contract_from_estimate + (approved_co * .95)
+            wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = (estimate_total - orig_contract_from_estimate) + (approved_co * .95)
 
 
         else: # no estimate
