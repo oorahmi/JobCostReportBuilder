@@ -36,6 +36,6 @@ The processed total job workbook will be saved as a copy in /processed
 
 Usage:
 
-    python createWIPReport.py path_to_processed_eva_workbook quarter_to_process (1-4)
+    python createWIPReport.py path_to_processed_eva_workbook quarter_to_process (1-4) year
     
 The processed WIP report will be saved in /processed
