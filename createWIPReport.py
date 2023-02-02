@@ -3,7 +3,7 @@ Program to take in a eva report and output a wip report
 
 Usage:  
 
-    python createWIPReport.py path_to_eva_workbook_file quarter_to_process(1-4)
+    python createWIPReport.py path_to_eva_workbook_file quarter_to_process(1-4) year
 
 The wip report will be saved in /processed
 
@@ -24,7 +24,7 @@ import datetime
 from collections import OrderedDict
        
 
-def createWIPReport(eva_wb_path, current_quarter):
+def createWIPReport(eva_wb_path, current_quarter, year):
     eva_total_wb = openpyxl.load_workbook(eva_wb_path) 
     if not eva_total_wb:
         print("Error: failed to open workbook: ", eva_wb_path)
@@ -54,7 +54,6 @@ def createWIPReport(eva_wb_path, current_quarter):
     min_date = datetime.date.max
     max_date = datetime.date.min
 
-    year = datetime.date.today().year
     if current_quarter == 1:
         min_date = datetime.datetime(year, 1, 1, 0, 0, 0)
         max_date = datetime.datetime(year, 3, 31, 0, 0, 0)
@@ -331,15 +330,16 @@ def createWIPReport(eva_wb_path, current_quarter):
 
 
 def main(argv):
-    if len(argv) == 0 or len(argv) > 2:
+    if len(argv) == 0 or len(argv) > 3:
         print("Error - usage: supply the processed EVA Job Workbook")
         return
 
     eva_wb_path = os.path.abspath(argv[0])
     quarter = int(argv[1])
+    year = int(argv[2])
 
     if os.path.isfile(eva_wb_path):
-        createWIPReport(eva_wb_path, quarter) 
+        createWIPReport(eva_wb_path, quarter, year) 
     elif not os.path.isfile():
         print("Error: eva workbook path does not exist?: ", eva_wb_path)
     else:
