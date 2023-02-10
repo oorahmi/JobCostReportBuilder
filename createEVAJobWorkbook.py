@@ -140,6 +140,10 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # create job sheet
         job_number = sheet.title
 
+        if not job_number:
+            print("Warn: null sheet passed")
+            return
+
         min_date = datetime.max
         max_date = datetime.min
 
@@ -254,6 +258,9 @@ def createEVAJobWorkbook(eva_total_wb_path):
                 
                 
         # append job name at top text
+        if not job_name:
+            print("Warn couldn't get job name job number: ", job_number)
+            return
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
         ITEM_NAME_COLUMN        = 3
@@ -287,7 +294,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         for job_item in job_items:
             if not job_item.hasSub:
 
-                if "labor" in job_item.item_name.lower():
+                if "labor" in job_item.item_name.lower() and "sub" not in job_item.item_name.lower():
                     total_actual_labor_cost += job_item.actual_amount
                     total_estimate_labor_cost += job_item.estimate_amount
                     if "temp" not in job_item.item_name.lower():
@@ -321,7 +328,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     
                     s_estimate_amount = job_item.estimate_sub_items[s_item_name] 
 
-                    if "labor" in s_item_name.lower():
+                    if "labor" in s_item_name.lower() and "sub" not in s_item_name.lower():
                         total_actual_labor_cost += s_actual_amount
                         total_estimate_labor_cost += s_estimate_amount
                         if "temp" not in s_item_name.lower():

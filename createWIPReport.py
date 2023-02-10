@@ -197,7 +197,7 @@ def createWIPReport(eva_wb_path, current_quarter, year):
             if job_sheet.cell(row = j, column = 2).value == "Total":
                 estimate_total = job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
             elif job_sheet.cell(row = j, column = 4).value == "Orig Contract":
-                orig_contract= job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
+                orig_contract = job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
             elif job_sheet.cell(row = j, column = 4).value == "Change Order":
                 change_order = job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
             elif job_sheet.cell(row = j, column = 4).value == "Other Job Income":
@@ -215,14 +215,16 @@ def createWIPReport(eva_wb_path, current_quarter, year):
                 other_oh = job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
 
         
+        if job_number == "21-0245":
+            print("orig: ", orig_contract)
+            print("estimate: ", estimate_total)
         ESTIMATE_NAME_COLUMN   = 10
         ESTIMATE_DESC_COLUMN   = 14
         ESTIMATE_AMOUNT_COLUMN = 16
 
+        wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = orig_contract
         #if larger than 
         if estimate_total > 0:
-            wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = estimate_total 
-
             # need to factor in extra original cost if applicable
             approved_co = 0
             if orig_contract > estimate_total:
@@ -249,7 +251,6 @@ def createWIPReport(eva_wb_path, current_quarter, year):
 
 
         else: # no estimate
-            wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = orig_contract 
             wip_report_sheet.cell(row = i, column = WIP_APPROVED_CO_COlUMN).value = change_order + other_job_income
             #                                                                           not sure if change_order makes sense here, but just need previous total price
             wip_report_sheet.cell(row = i, column = WIP_ESTIMATED_COST_COlUMN).value = (orig_contract + change_order + other_job_income ) * .95
