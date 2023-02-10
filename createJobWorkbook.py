@@ -192,7 +192,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         for job_item in job_items:
             if not job_item.hasSub:
 
-                if "labor" in job_item.item_name.lower() and "temp" not in job_item.item_name.lower():
+                if "labor" in job_item.item_name.lower() and "temp" not in job_item.item_name.lower() and "sub" not in job_item.item_name.lower():
                     total_labor_cost += job_item.amount
 
                 total_cost += job_item.amount
@@ -211,7 +211,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
                 sub_total = 0
                 for s_item_name, s_amount in job_item.sub_items.items():
 
-                    if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower():
+                    if "labor" in s_item_name.lower() and "temp" not in s_item_name.lower() and "sub" not in s_item_name.lower():
                         total_labor_cost += s_amount 
 
                     total_cost += s_amount
