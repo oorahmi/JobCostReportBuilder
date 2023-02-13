@@ -46,6 +46,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
     job_str_set = OrderedDict()
 
     ACTUAL_NAME_COLUMN = 11      
+    REVENUE_NAME_COLUMN = 11
 
     # add new sheet for each unique job
     # column
@@ -57,6 +58,16 @@ def createEVAJobWorkbook(eva_total_wb_path):
         if job_data and len(job_data.split(":")) > 1:
             job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
             job_str_set[job_number] = None
+
+    # some jobs only on revenue sheet for some reason?
+    for i in range(1, revenue_sheet.max_row + 1): 
+        job_data = revenue_sheet.cell(row = i, column = REVENUE_NAME_COLUMN).value
+        # format is currrently:   job_name:job_number type
+        # is a job string? 
+        if job_data and len(job_data.split(":")) > 1:
+            job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
+            job_str_set[job_number] = None
+
 
     job_numbers = list(job_str_set.keys())
     
