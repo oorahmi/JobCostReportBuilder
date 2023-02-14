@@ -54,8 +54,7 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
     job_str_set = OrderedDict()
     NAME_COLUMN = 8      # might switch between eva and non eva?
 
-    # add new sheet for each unique job
-    # column
+    # get unique job numbers
     for i in range(1, cost_detail_sheet.max_row + 1): 
         job_data = cost_detail_sheet.cell(row = i, column = NAME_COLUMN).value
 
@@ -74,6 +73,9 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
 
     # add new sheet for each job number
     for job_number in job_numbers:
+        # clear old data if reprocessing
+        if (job_number in cost_detail_wb.sheetnames):
+            cost_detail_wb.remove(cost_detail_wb[job_number])
         cost_detail_wb.create_sheet(title=job_number)
 
     # copy empty job cost sheet
@@ -364,16 +366,15 @@ def createJobWorkbook(cost_detail_wb_path, revenue_file_path):
         # clear out extra rows
         sheet.delete_rows(i, sheet.max_row - i)
 
-        # trim printable area to data?
-        sheet._print_area = "A1:I"+str(i)
-
     # -------------------------------------------------------------------------------- #
 
-    # create and fill all job sheet data
-    for sheet in cost_detail_wb:
+    for i in range(1, len(cost_detail_wb.sheetnames)):
+        sheet = cost_detail_wb.worksheets[i]
         if sheet.title == 'Total':
             continue
-        # copy initial format into empty sheet
+        # skiped a sheet
+        print("Processing job: ", i, " out of ", len(cost_detail_wb.sheetnames)-1)
+       # copy initial format into empty sheet
         copySheet(jc_wb.active, sheet)
         createJobCostSheet(sheet)
 

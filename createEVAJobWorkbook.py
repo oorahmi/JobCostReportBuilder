@@ -587,7 +587,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
     # create and fill all job sheet data
     # skip first 3
     for i in range(3, len(eva_total_wb.sheetnames)):
-        print("Processing job: ", i+1, " out of ", len(eva_total_wb.sheetnames))
+        # skip 3 sheets
+        print("Processing job: ", i-2, " out of ", len(eva_total_wb.sheetnames)-3)
         sheet = eva_total_wb.worksheets[i]
        # copy initial format into empty sheet
         copySheet(eva_jc_wb.active, sheet)
