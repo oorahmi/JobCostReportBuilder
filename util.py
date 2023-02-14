@@ -1,4 +1,6 @@
 import openpyxl
+
+import sys
 from openpyxl.styles import Border, Side
 from copy import copy
 
@@ -104,3 +106,15 @@ def copySheet(source_sheet, target_sheet):
     copy_cells(source_sheet, target_sheet)  # copy all the cel values and styles
     copy_sheet_attributes(source_sheet, target_sheet)
         
+
+def progressbar(it, prefix="", size=60, out=sys.stdout): # Python3.3+
+    count = len(it)
+    def show(j):
+        x = int(size*j/count)
+        print("{}[{}{}] {}/{}".format(prefix, "#"*x, "."*(size-x), j, count), 
+                end='\r', file=out, flush=True)
+    show(0)
+    for i, item in enumerate(it):
+        yield item
+        show(i+1)
+    print("\n", flush=True, file=out)

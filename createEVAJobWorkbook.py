@@ -45,10 +45,11 @@ def createEVAJobWorkbook(eva_total_wb_path):
     #job_str_set = set()
     job_str_set = OrderedDict()
 
-    ACTUAL_NAME_COLUMN = 11      
-    REVENUE_NAME_COLUMN = 11
+    ACTUAL_NAME_COLUMN   = 11      
+    REVENUE_NAME_COLUMN  = 11
+    ESTIMATE_NAME_COLUMN = 10
 
-    # add new sheet for each unique job
+    # add new sheet for each unique job, aggregating from all sheets as a precaution
     # column
     for i in range(1, actual_cost_detail_sheet.max_row + 1): 
         job_data = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_NAME_COLUMN).value
@@ -59,32 +60,37 @@ def createEVAJobWorkbook(eva_total_wb_path):
             job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
             job_str_set[job_number] = None
 
-    # some jobs only on revenue sheet for some reason?
     for i in range(1, revenue_sheet.max_row + 1): 
         job_data = revenue_sheet.cell(row = i, column = REVENUE_NAME_COLUMN).value
-        # format is currrently:   job_name:job_number type
-        # is a job string? 
+
         if job_data and len(job_data.split(":")) > 1:
             job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
             job_str_set[job_number] = None
 
+    for i in range(1, estimate_cost_detail_sheet.max_row + 1): 
+        job_data = revenue_sheet.cell(row = i, column = ESTIMATE_NAME_COLUMN).value
+
+        if job_data and len(job_data.split(":")) > 1:
+            job_number = job_data.split(":")[1].split(' ')[0]    # could be better?
+            job_str_set[job_number] = None
 
     job_numbers = list(job_str_set.keys())
     
     if len(job_numbers) == 0:
         print("Error: failed to find jobs in workbook: ", processed_file_path)
         return
-
-
+    
     # add new sheet for each job number
     for job_number in job_numbers:
+        # clear old sheet
+        if (job_number in eva_total_wb.sheetnames):
+            eva_total_wb.remove(eva_total_wb[job_number])
         eva_total_wb.create_sheet(title=job_number)
 
     # copy empty job cost sheet
     eva_jc_wb = openpyxl.load_workbook(os.getcwd() + "/data/eva_jc_blank.xlsx") 
     if not eva_jc_wb:
         print("Error: failed to open data workbook: /data/eva_jc_blank.xlsx")
-        sys.exit()
         return
 
     ACTUAL_DATE_COLUMN = 9
@@ -216,7 +222,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.actual_amount += j_actual_amount
 
-        ESTIMATE_NAME_COLUMN   = 10
         ESTIMATE_ITEM_COLUMN   = 12
         ESTIMATE_AMOUNT_COLUMN = 16
 
@@ -225,6 +230,9 @@ def createEVAJobWorkbook(eva_total_wb_path):
             j_name = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_NAME_COLUMN).value
 
             if j_name and job_number in j_name:
+
+                if not job_name:
+                    job_name = j_name 
 
                 j_item = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_ITEM_COLUMN).value
                 j_estimate_amount = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_AMOUNT_COLUMN).value
@@ -267,11 +275,19 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.estimate_amount += j_estimate_amount
                 
-                
+        # last effort to get job name
+        if not job_name:
+            for i in range(1, revenue_sheet.max_row + 1):    # could optimize by not doing all rows
+                j_name = revenue_sheet.cell(row = i, column = REVENUE_NAME_COLUMN).value
+                if j_name and job_number in j_name:
+                    job_name = j_name 
+                    break
+
         # append job name at top text
         if not job_name:
             print("Warn couldn't get job name job number: ", job_number)
             return
+
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
         ITEM_NAME_COLUMN        = 3
@@ -566,17 +582,12 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # write date range
         sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
-        # clear out extra rows
-        #sheet.delete_rows(i, sheet.max_row - i)
-
-        # trim printable area to data?
-        sheet._print_area = "A1:I"+str(i)
-
     # -------------------------------------------------------------------------------- #
 
     # create and fill all job sheet data
     # skip first 3
-    for i in range(3,len(eva_total_wb.sheetnames)):
+    for i in range(3, len(eva_total_wb.sheetnames)):
+        print("Processing job: ", i+1, " out of ", len(eva_total_wb.sheetnames))
         sheet = eva_total_wb.worksheets[i]
        # copy initial format into empty sheet
         copySheet(eva_jc_wb.active, sheet)
@@ -584,7 +595,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.orientation = 'portrait'
 
     eva_total_wb.save(processed_file_path)
-
 
 
 def main(argv):
