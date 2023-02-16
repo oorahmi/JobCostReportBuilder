@@ -580,7 +580,7 @@ def createEVAJobWorkbook(eva_total_wb_path):
         i += 1
 
         # write date range
-        sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
+        #sheet.cell(row = 3, column = 1).value = "Transactions from: " + min_date.strftime("%m/%d/%y") + " to " + max_date.strftime("%m/%d/%y")
 
     # -------------------------------------------------------------------------------- #
 
