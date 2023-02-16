@@ -288,6 +288,8 @@ def createEVAJobWorkbook(eva_total_wb_path):
             print("Warn couldn't get job name job number: ", job_number)
             return
 
+        print("Current Job: ", job_name)
+
         sheet.cell(row = 2, column = 1).value = sheet.cell(row = 2, column = 1).value + " " + job_name
 
         ITEM_NAME_COLUMN        = 3
