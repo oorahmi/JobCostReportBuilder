@@ -45,9 +45,56 @@ def createEVAJobWorkbook(eva_total_wb_path):
     #job_str_set = set()
     job_str_set = OrderedDict()
 
-    ACTUAL_NAME_COLUMN   = 11      
-    REVENUE_NAME_COLUMN  = 11
-    ESTIMATE_NAME_COLUMN = 10
+
+    ACTUAL_NAME_COLUMN = -1
+    ACTUAL_DATE_COLUMN = -1
+    ACTUAL_ITEM_COLUMN = -1
+    ACTUAL_AMOUNT_COLUMN = -1
+
+    ESTIMATE_NAME_COLUMN = -1
+    ESTIMATE_ITEM_COLUMN   = -1
+    ESTIMATE_AMOUNT_COLUMN = -1
+
+    REVENUE_NAME_COLUMN  = -1
+    REVENUE_MEMO_COLUMN = -1
+    REVENUE_DATE_COLUMN = -1
+    REVENUE_ITEM_COLUMN = -1
+    REVENUE_AMOUNT_COLUMN = -1
+
+    # Find columns from name row for each sheet
+    for i in range(1, actual_cost_detail_sheet.max_column + 1):
+        name_value = str(actual_cost_detail_sheet.cell(row = 4, column = i).value)
+        if name_value == "Name":
+            ACTUAL_NAME_COLUMN = i
+        elif name_value == "Date":
+            ACTUAL_DATE_COLUMN = i
+        elif name_value == "Amount":
+            ACTUAL_AMOUNT_COLUMN = i
+        elif name_value == "Item":
+            ACTUAL_ITEM_COLUMN = i
+
+    for i in range(1, estimate_cost_detail_sheet.max_column + 1):
+        name_value = str(estimate_cost_detail_sheet.cell(row = 4, column = i).value)
+        if name_value == "Name":
+            ESTIMATE_NAME_COLUMN = i
+        elif name_value == "Item":
+            ESTIMATE_ITEM_COLUMN = i
+        elif name_value == "Amount":
+            ESTIMATE_AMOUNT_COLUMN = i
+
+    for i in range(1, revenue_sheet.max_column + 1):
+        name_value = str(revenue_sheet.cell(row = 4, column = i).value)
+        if name_value == "Name":
+            REVENUE_NAME_COLUMN = i
+        elif name_value == "Memo":
+            REVENUE_MEMO_COLUMN = i
+        elif name_value == "Item":
+            REVENUE_ITEM_COLUMN = i
+        elif name_value == "Amount":
+            REVENUE_AMOUNT_COLUMN = i
+        elif name_value == "Date":
+            REVENUE_DATE_COLUMN = i
+
 
     # add new sheet for each unique job, aggregating from all sheets as a precaution
     # column
@@ -93,9 +140,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
         print("Error: failed to open data workbook: /data/eva_jc_blank.xlsx")
         return
 
-    ACTUAL_DATE_COLUMN = 9
-    ACTUAL_ITEM_COLUMN = 15      
-    ACTUAL_AMOUNT_COLUMN = 19
 
     class JobItem:
         def __init__(self, item_name="", sub=False):
@@ -222,8 +266,6 @@ def createEVAJobWorkbook(eva_total_wb_path):
                     else:
                         job_item.actual_amount += j_actual_amount
 
-        ESTIMATE_ITEM_COLUMN   = 12
-        ESTIMATE_AMOUNT_COLUMN = 16
 
         # now get estimate amounts for all the job items, should not be any new jobs
         for i in range(1, estimate_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
@@ -416,25 +458,18 @@ def createEVAJobWorkbook(eva_total_wb_path):
         sheet.cell(row = i, column = ITEM_NAME_COLUMN).font = bold_font
         i += 1
 
-        DATE_REVENUE_COLUMN = 9
-        NAME_REVENUE_COLUMN = 11
-        MEMO_REVENUE_COLUMN = 13
-        ITEM_REVENUE_COLUMN = 15
-        AMOUNT_REVENUE_COLUMN = 19
- 
         # get revenue info 
-
         total_orig_contract    = 0
         total_change_order     = 0
         total_other_job_income = 0
         total_retainage        = 0
 
         for j in range(6, revenue_sheet.max_row + 1):    
-            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
+            j_name = revenue_sheet.cell(row = j, column = REVENUE_NAME_COLUMN).value
             if j_name and job_number in j_name:
                 
-                amount = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN).value
-                item_str = revenue_sheet.cell(row = j, column = ITEM_REVENUE_COLUMN).value
+                amount = revenue_sheet.cell(row = j, column = REVENUE_AMOUNT_COLUMN).value
+                item_str = revenue_sheet.cell(row = j, column = REVENUE_ITEM_COLUMN).value
                 if not item_str:
                     continue
                 item_str = item_str.lower()
@@ -562,10 +597,10 @@ def createEVAJobWorkbook(eva_total_wb_path):
         # Grab all billed
         # Could avoid doing this iteration twice
         for j in range(6, revenue_sheet.max_row + 1):    
-            j_name = revenue_sheet.cell(row = j, column = NAME_REVENUE_COLUMN).value
+            j_name = revenue_sheet.cell(row = j, column = REVENUE_NAME_COLUMN).value
             if j_name and job_number in j_name:
-                memo_cell = revenue_sheet.cell(row = j, column = MEMO_REVENUE_COLUMN) 
-                amount_cell = revenue_sheet.cell(row = j, column = AMOUNT_REVENUE_COLUMN) 
+                memo_cell = revenue_sheet.cell(row = j, column = REVENUE_MEMO_COLUMN) 
+                amount_cell = revenue_sheet.cell(row = j, column = REVENUE_AMOUNT_COLUMN) 
 
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).value = memo_cell.value
                 sheet.cell(row = i, column = SUBITEM_NAME_COLUMN).font = default_font
