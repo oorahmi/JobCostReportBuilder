@@ -317,6 +317,7 @@ def createWIPReport(eva_wb_path, current_quarter, year):
         q_total_cost_w_oh = total_costs + q_labor_oh + q_other_oh
         wip_report_sheet.cell(row = i, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = q_labor_oh
         wip_report_sheet.cell(row = i, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = q_other_oh
+        wip_report_sheet.cell(row = i, column = WIP_Q_COSTS_COlUMN).value = q_total_cost_w_oh
 
         i += 1 # next job
     
