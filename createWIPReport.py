@@ -46,8 +46,40 @@ def createWIPReport(eva_wb_path, current_quarter, year):
         return
 
     actual_cost_detail_sheet    = eva_total_wb.worksheets[0]
+    # quarterly handling
+    ACTUAL_NAME_COLUMN = -1
+    ACTUAL_DATE_COLUMN = -1
+    ACTUAL_ITEM_COLUMN = -1
+    ACTUAL_AMOUNT_COLUMN = -1
+    # Find columns from name row for each sheet
+    for i in range(1, actual_cost_detail_sheet.max_column + 1):
+        name_value = str(actual_cost_detail_sheet.cell(row = 4, column = i).value)
+        if name_value == "Name":
+            ACTUAL_NAME_COLUMN = i
+        elif name_value == "Date":
+            ACTUAL_DATE_COLUMN = i
+        elif name_value == "Amount":
+            ACTUAL_AMOUNT_COLUMN = i
+        elif name_value == "Item":
+            ACTUAL_ITEM_COLUMN = i
+
     # revenue_sheet               = eva_total_wb.worksheets[1]
     estimate_cost_detail_sheet  = eva_total_wb.worksheets[2]
+
+    ESTIMATE_NAME_COLUMN   = -1
+    ESTIMATE_AMOUNT_COLUMN = -1
+    ESTIMATE_DESC_COLUMN   = -1
+
+    for i in range(1, estimate_cost_detail_sheet.max_column + 1):
+        name_value = str(estimate_cost_detail_sheet.cell(row = 4, column = i).value)
+        if name_value == "Name":
+            ESTIMATE_NAME_COLUMN = i
+        elif name_value == "Amount":
+            ESTIMATE_AMOUNT_COLUMN = i
+        elif name_value == "Item Description":
+            ESTIMATE_DESC_COLUMN = i
+
+
 
     wip_report_sheet = wip_report_wb.worksheets[0]
 
@@ -214,14 +246,6 @@ def createWIPReport(eva_wb_path, current_quarter, year):
             elif job_sheet.cell(row = j, column = 4).value == "Other OH":
                 other_oh = job_sheet.cell(row = j, column = JOB_ESTIMATE_COLUMN).value
 
-        
-        if job_number == "21-0245":
-            print("orig: ", orig_contract)
-            print("estimate: ", estimate_total)
-        ESTIMATE_NAME_COLUMN   = 10
-        ESTIMATE_DESC_COLUMN   = 14
-        ESTIMATE_AMOUNT_COLUMN = 16
-
         #if larger than 
         if estimate_total > 0:
             wip_report_sheet.cell(row = i, column = WIP_CONTRACT_PRICE_COlUMN).value = estimate_total
@@ -262,12 +286,7 @@ def createWIPReport(eva_wb_path, current_quarter, year):
         wip_report_sheet.cell(row = i, column = WIP_BILLINGS_TO_DATE_COlUMN).value = billed_to_date 
         wip_report_sheet.cell(row = i, column = WIP_RETAINAGE_COlUMN).value = retainage 
 
-        # quarterly handling
-        ACTUAL_NAME_COLUMN = 11 
-        ACTUAL_ITEM_COLUMN = 15      
-        ACTUAL_AMOUNT_COLUMN = 19
-        ACTUAL_DATE_COLUMN = 9
-
+       
         total_labor_cost_no_temp = 0
         total_costs = 0
 
@@ -296,8 +315,6 @@ def createWIPReport(eva_wb_path, current_quarter, year):
         q_labor_oh = total_labor_cost_no_temp * 0.3
         q_other_oh = total_costs * 0.005
         q_total_cost_w_oh = total_costs + q_labor_oh + q_other_oh
-
-        wip_report_sheet.cell(row = i, column = WIP_Q_COSTS_COlUMN).value = q_total_cost_w_oh 
         wip_report_sheet.cell(row = i, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = q_labor_oh
         wip_report_sheet.cell(row = i, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = q_other_oh
 
