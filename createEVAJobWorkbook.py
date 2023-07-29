@@ -211,10 +211,15 @@ def createEVAJobWorkbook(eva_total_wb_path):
         job_name = None
         job_items = []
         # get all job actual costs 
-        for i in range(1, actual_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
+        for i in range(5, actual_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
             j_name = actual_cost_detail_sheet.cell(row = i, column = ACTUAL_NAME_COLUMN).value
 
-            if j_name and job_number in j_name:
+            if not j_name:
+                continue
+
+            comp_job_number = j_name.split(":")[1].split(' ')[0]    # could be better?
+
+            if job_number == comp_job_number:
                 
                 if not job_name:
                     job_name = j_name 
@@ -268,10 +273,15 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
 
         # now get estimate amounts for all the job items, should not be any new jobs
-        for i in range(1, estimate_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
+        for i in range(5, estimate_cost_detail_sheet.max_row + 1):    # could optimize by not doing all rows
             j_name = estimate_cost_detail_sheet.cell(row = i, column = ESTIMATE_NAME_COLUMN).value
 
-            if j_name and job_number in j_name:
+            if not j_name:
+                continue
+            # job number is after : in name, get it by itself
+            comp_job_number = j_name.split(":")[1].split(' ')[0]    # could be better?
+
+            if job_number == comp_job_number:
 
                 if not job_name:
                     job_name = j_name 
@@ -464,9 +474,14 @@ def createEVAJobWorkbook(eva_total_wb_path):
         total_other_job_income = 0
         total_retainage        = 0
 
-        for j in range(6, revenue_sheet.max_row + 1):    
+        for j in range(5, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = REVENUE_NAME_COLUMN).value
-            if j_name and job_number in j_name:
+            if not j_name:
+                continue
+
+            comp_job_number = j_name.split(":")[1].split(' ')[0]    # could be better?
+
+            if job_number == comp_job_number:
                 
                 amount = revenue_sheet.cell(row = j, column = REVENUE_AMOUNT_COLUMN).value
                 item_str = revenue_sheet.cell(row = j, column = REVENUE_ITEM_COLUMN).value
@@ -596,9 +611,15 @@ def createEVAJobWorkbook(eva_total_wb_path):
 
         # Grab all billed
         # Could avoid doing this iteration twice
-        for j in range(6, revenue_sheet.max_row + 1):    
+        for j in range(5, revenue_sheet.max_row + 1):    
             j_name = revenue_sheet.cell(row = j, column = REVENUE_NAME_COLUMN).value
-            if j_name and job_number in j_name:
+
+            if not j_name:
+                continue
+
+            comp_job_number = j_name.split(":")[1].split(' ')[0]    # could be better?
+
+            if job_number == comp_job_number:
                 memo_cell = revenue_sheet.cell(row = j, column = REVENUE_MEMO_COLUMN) 
                 amount_cell = revenue_sheet.cell(row = j, column = REVENUE_AMOUNT_COLUMN) 
 

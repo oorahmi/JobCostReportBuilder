@@ -37,7 +37,7 @@ def createWIPReport(eva_wb_path, current_quarter, year):
     
     # copy empty wip
     wip_blank_path = os.getcwd() + "/data/wip_blank.xlsx"
-    processed_file_path = os.getcwd() +'/processed/wip_processed.xlsx'
+    processed_file_path = os.getcwd() +'/processed/wip_processed_'+ str(current_quarter) + '_' + str(year) + '.xlsx'
     shutil.copyfile(wip_blank_path, processed_file_path)
 
     wip_report_wb = openpyxl.load_workbook(wip_blank_path) 
@@ -324,25 +324,27 @@ def createWIPReport(eva_wb_path, current_quarter, year):
     # calculate totals of each column
     # writing to bottom of current bounding box
     # TODO: dynamic bounding box and do this after all jobs
-    wip_report_sheet.cell(row = 61, column = WIP_CONTRACT_PRICE_COlUMN).value ='=SUM(D7:D60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_APPROVED_CO_COlUMN).value ='=SUM(E7:E60)'  
-    wip_report_sheet.cell(row = 61, column = WIP_TOTAL_PRICE_COlUMN).value = '=SUM(F7:F60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_COST_COlUMN).value ='=SUM(G7:G60)'
-    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_PROFIT_COlUMN).value = '=SUM(H7:H60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_ESTIMATED_PROFIT_PERC_COlUMN).value = '=AVERAGE(I7:I60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_ACTUAL_COST_TO_DATE_COlUMN).value = '=SUM(J7:J60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_PERC_COMPLETION_COlUMN).value = '=AVERAGE(K7:K60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_REVENUES_EARNED_TO_DATE_COlUMN).value = '=SUM(L7:L60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_BILLINGS_TO_DATE_COlUMN).value = '=SUM(M7:M60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_RETAINAGE_COlUMN).value = '=SUM(N7:N60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_COST_IN_EXEC_BILLINGS_COlUMN).value = '=SUM(O7:O60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_BILLINGS_IN_EXCESS_COlUMN).value = '=SUM(P7:P60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_BACKLOG_COlUMN).value = '=SUM(Q7:Q60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_REVENUES_COlUMN).value = '=SUM(R7:R60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_COSTS_COlUMN).value = '=SUM(S7:S60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = '=SUM(T7:T60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = '=SUM(U7:U60)' 
-    wip_report_sheet.cell(row = 61, column = WIP_Q_PROFIT_LOSS_COlUMN).value = '=SUM(V7:V60)' 
+    end_row = len(ordered_job_numbers ) + 6 + 2 # 6 for header and 2 for space
+    wip_report_sheet.cell(row = end_row, column = 2).value ='Totals' 
+    wip_report_sheet.cell(row = end_row, column = WIP_CONTRACT_PRICE_COlUMN).value ='=SUM(D7:D60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_APPROVED_CO_COlUMN).value ='=SUM(E7:E60)'  
+    wip_report_sheet.cell(row = end_row, column = WIP_TOTAL_PRICE_COlUMN).value = '=SUM(F7:F60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_ESTIMATED_COST_COlUMN).value ='=SUM(G7:G60)'
+    wip_report_sheet.cell(row = end_row, column = WIP_ESTIMATED_PROFIT_COlUMN).value = '=SUM(H7:H60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_ESTIMATED_PROFIT_PERC_COlUMN).value = '=AVERAGE(I7:I60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_ACTUAL_COST_TO_DATE_COlUMN).value = '=SUM(J7:J60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_PERC_COMPLETION_COlUMN).value = '=AVERAGE(K7:K60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_REVENUES_EARNED_TO_DATE_COlUMN).value = '=SUM(L7:L60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_BILLINGS_TO_DATE_COlUMN).value = '=SUM(M7:M60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_RETAINAGE_COlUMN).value = '=SUM(N7:N60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_COST_IN_EXEC_BILLINGS_COlUMN).value = '=SUM(O7:O60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_BILLINGS_IN_EXCESS_COlUMN).value = '=SUM(P7:P60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_BACKLOG_COlUMN).value = '=SUM(Q7:Q60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_Q_REVENUES_COlUMN).value = '=SUM(R7:R60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_Q_COSTS_COlUMN).value = '=SUM(S7:S60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_Q_LAB_OVERHEAD_COlUMN).value = '=SUM(T7:T60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_Q_OTH_OVERHEAD_COlUMN).value = '=SUM(U7:U60)' 
+    wip_report_sheet.cell(row = end_row, column = WIP_Q_PROFIT_LOSS_COlUMN).value = '=SUM(V7:V60)' 
 
     wip_report_wb.save(processed_file_path)
 
